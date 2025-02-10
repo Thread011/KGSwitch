@@ -1,0 +1,7 @@
+com\kgswitch\transforms\StatementGraphTransformer.class
+com\kgswitch\transforms\RDFSchemaTransformer.class
+com\kgswitch\models\PropertyConstraint.class
+com\kgswitch\models\SchemaGraph.class
+com\kgswitch\App.class
+com\kgswitch\models\SchemaEdge.class
+com\kgswitch\models\SchemaNode.class

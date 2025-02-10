@@ -1,0 +1,18 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix schema: <http://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+schema:FlightReservationShape
+    a sh:NodeShape ;
+    sh:targetClass schema:FlightReservation ;
+    sh:property [
+        sh:path schema:reservationId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:reservationStatus ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] .

@@ -1,0 +1,7 @@
+@prefix schema: <http://schema.org/> .
+@prefix ex: <http://example.org/> .
+
+ex:reservation123
+    a schema:FlightReservation ;
+    schema:reservationId "RXJ34P" ;
+    schema:reservationStatus "Confirmed" .
