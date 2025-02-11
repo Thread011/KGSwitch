@@ -24,11 +24,6 @@
         sh:property     [ a            sh:PropertyShape;
                           sh:datatype  <http://www.w3.org/2001/XMLSchema#string>;
                           sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
-                          sh:path      schema:familyName
-                        ];
-        sh:property     [ a            sh:PropertyShape;
-                          sh:datatype  <http://www.w3.org/2001/XMLSchema#string>;
-                          sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
                           sh:path      schema:givenName
                         ];
         sh:property     [ a            sh:PropertyShape;
@@ -36,6 +31,11 @@
                           sh:maxCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
                           sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
                           sh:path      schema:email
+                        ];
+        sh:property     [ a            sh:PropertyShape;
+                          sh:datatype  <http://www.w3.org/2001/XMLSchema#string>;
+                          sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
+                          sh:path      schema:familyName
                         ];
         sh:targetClass  schema:Person .
 
@@ -68,14 +68,14 @@
                         ];
         sh:property     [ a            sh:PropertyShape;
                           sh:datatype  <http://www.w3.org/2001/XMLSchema#string>;
-                          sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
-                          sh:path      schema:reservationStatus
-                        ];
-        sh:property     [ a            sh:PropertyShape;
-                          sh:datatype  <http://www.w3.org/2001/XMLSchema#string>;
                           sh:maxCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
                           sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
                           sh:path      schema:reservationId
+                        ];
+        sh:property     [ a            sh:PropertyShape;
+                          sh:datatype  <http://www.w3.org/2001/XMLSchema#string>;
+                          sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
+                          sh:path      schema:reservationStatus
                         ];
         sh:targetClass  schema:FlightReservation .
 
@@ -84,13 +84,13 @@
                           sh:class     <Airport>;
                           sh:maxCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
                           sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
-                          sh:path      schema:arrivalairport
+                          sh:path      schema:departureairport
                         ];
         sh:property     [ a            sh:PropertyShape;
                           sh:class     <Airport>;
                           sh:maxCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
                           sh:minCount  "1"^^<http://www.w3.org/2001/XMLSchema#int>;
-                          sh:path      schema:departureairport
+                          sh:path      schema:arrivalairport
                         ];
         sh:property     [ a            sh:PropertyShape;
                           sh:datatype  <http://www.w3.org/2001/XMLSchema#string>;

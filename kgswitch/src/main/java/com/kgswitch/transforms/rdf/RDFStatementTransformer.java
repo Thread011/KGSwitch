@@ -3,6 +3,7 @@ package com.kgswitch.transforms.rdf;
 import com.kgswitch.models.graph.SchemaEdge;
 import com.kgswitch.models.graph.SchemaGraph;
 import com.kgswitch.models.graph.SchemaNode;
+import com.kgswitch.models.constraints.PropertyConstraint;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDF;
 import java.util.*;
@@ -140,29 +141,67 @@ public class RDFStatementTransformer {
         String predicate = statement.getProperties().get("predicate").toString();
         String objectUri = statement.getProperties().get("object").toString();
         
+        // Get or create source and target nodes
+        SchemaNode sourceNode = pgStatementGraph.getNode(subjectUri);
+        if (sourceNode == null) {
+            sourceNode = new SchemaNode(subjectUri);
+            pgStatementGraph.addNode(sourceNode);
+        }
+        
+        SchemaNode targetNode = pgStatementGraph.getNode(objectUri);
+        if (targetNode == null) {
+            targetNode = new SchemaNode(objectUri);
+            pgStatementGraph.addNode(targetNode);
+        }
+        
+        // Create the edge
+        SchemaEdge edge = new SchemaEdge(
+            predicate.toUpperCase(),
+            sourceNode,
+            targetNode,
+            predicate.toUpperCase()
+        );
+        
+        // Transfer properties and constraints from statement to edge
+        for (Map.Entry<String, PropertyConstraint> entry : statement.getPropertyConstraints().entrySet()) {
+            edge.addPropertyConstraint(entry.getValue());
+        }
+        
+        // Add cardinality constraints if present
+        if (statement.getProperties().containsKey("minCount")) {
+            edge.addProperty("minCount", statement.getProperties().get("minCount").toString());
+        }
+        if (statement.getProperties().containsKey("maxCount")) {
+            edge.addProperty("maxCount", statement.getProperties().get("maxCount").toString());
+        }
+        
+        // Add the edge to the graph
+        pgStatementGraph.addEdge(edge);
+        
+        // Now create the SHACL property shape
         Resource subject = nodeShapes.get(subjectUri);
         if (subject == null) return;
         
         Resource propertyShape = rdfModel.createResource();
         propertyShape.addProperty(RDF.type, 
-            rdfModel.createResource("http://www.w3.org/ns/shacl#PropertyShape"));
+            rdfModel.createResource(SHACL_NS + "PropertyShape"));
         
         // Add path for relationship
         propertyShape.addProperty(
-            rdfModel.createProperty("http://www.w3.org/ns/shacl#path"),
-            rdfModel.createProperty("http://schema.org/", predicate)
+            rdfModel.createProperty(SHACL_NS + "path"),
+            rdfModel.createProperty(SCHEMA_NS + predicate)
         );
         
         // Add target class constraint
         propertyShape.addProperty(
-            rdfModel.createProperty("http://www.w3.org/ns/shacl#class"),
+            rdfModel.createProperty(SHACL_NS + "class"),
             rdfModel.createResource(objectUri)
         );
         
-        // Add cardinality constraints if present
+        // Add cardinality constraints to SHACL
         if (statement.getProperties().containsKey("minCount")) {
             propertyShape.addProperty(
-                rdfModel.createProperty("http://www.w3.org/ns/shacl#minCount"),
+                rdfModel.createProperty(SHACL_NS + "minCount"),
                 rdfModel.createTypedLiteral(
                     Integer.parseInt(statement.getProperties().get("minCount").toString()))
             );
@@ -172,17 +211,60 @@ public class RDFStatementTransformer {
             String maxCount = statement.getProperties().get("maxCount").toString();
             if (!maxCount.equals("-1")) {
                 propertyShape.addProperty(
-                    rdfModel.createProperty("http://www.w3.org/ns/shacl#maxCount"),
+                    rdfModel.createProperty(SHACL_NS + "maxCount"),
                     rdfModel.createTypedLiteral(Integer.parseInt(maxCount))
                 );
             }
         }
         
+        // Add nested property shapes
+        for (Map.Entry<String, PropertyConstraint> entry : statement.getPropertyConstraints().entrySet()) {
+            String propName = entry.getKey();
+            PropertyConstraint constraint = entry.getValue();
+            
+            Resource nestedShape = rdfModel.createResource()
+                .addProperty(RDF.type, rdfModel.createResource(SHACL_NS + "PropertyShape"))
+                .addProperty(
+                    rdfModel.createProperty(SHACL_NS + "path"),
+                    rdfModel.createProperty(SCHEMA_NS + propName)
+                );
+            
+            // Add datatype
+            if (constraint.getDataType() != null) {
+                nestedShape.addProperty(
+                    rdfModel.createProperty(SHACL_NS + "datatype"),
+                    rdfModel.createResource(constraint.getDataType())
+                );
+            }
+            
+            // Add cardinality
+            if (constraint.getMinCardinality() > 0) {
+                nestedShape.addProperty(
+                    rdfModel.createProperty(SHACL_NS + "minCount"),
+                    rdfModel.createTypedLiteral(constraint.getMinCardinality())
+                );
+            }
+            if (constraint.getMaxCardinality() != -1) {
+                nestedShape.addProperty(
+                    rdfModel.createProperty(SHACL_NS + "maxCount"),
+                    rdfModel.createTypedLiteral(constraint.getMaxCardinality())
+                );
+            }
+            
+            propertyShape.addProperty(
+                rdfModel.createProperty(SHACL_NS + "property"),
+                nestedShape
+            );
+            
+            System.out.println("Added nested property shape for: " + propName);
+        }
+        
         subject.addProperty(
-            rdfModel.createProperty("http://www.w3.org/ns/shacl#property"),
+            rdfModel.createProperty(SHACL_NS + "property"),
             propertyShape
         );
         
-        System.out.println("Added relationship property shape for: " + predicate);
+        System.out.println("Added relationship property shape for: " + predicate + 
+                          " with " + statement.getPropertyConstraints().size() + " properties");
     }
 }

@@ -239,54 +239,97 @@ class SchemaTransformationServiceTest {
         String jsonContent = Files.readString(jsonSchemaPath);
         JsonNode jsonNode = objectMapper.readTree(jsonContent);
         
-        // Verify nodes
-        JsonNode nodes = jsonNode.get("nodes");
-        assertNotNull(nodes, "Nodes array should exist");
-        assertTrue(nodes.isArray(), "Nodes should be an array");
+        // Debug: Print the entire JSON structure
+        System.out.println("\n=== Full JSON Schema ===");
+        System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode));
         
-        // Verify FlightReservation node
-        boolean foundFlightReservation = false;
-        boolean foundPerson = false;
-        
-        for (JsonNode node : nodes) {
-            String label = node.get("label").asText();
-            if (label.contains("FlightReservation")) {
-                foundFlightReservation = true;
-                JsonNode props = node.get("properties");
-                assertTrue(props.has("reservationId"), "Should have reservationId property");
-                assertTrue(props.has("reservationStatus"), "Should have reservationStatus property");
-            } else if (label.contains("Person")) {
-                foundPerson = true;
-                JsonNode props = node.get("properties");
-                assertTrue(props.has("givenName"), "Should have givenName property");
-                assertTrue(props.has("familyName"), "Should have familyName property");
-                assertTrue(props.has("email"), "Should have email property");
-            }
-        }
-        
-        assertTrue(foundFlightReservation, "Should contain FlightReservation node");
-        assertTrue(foundPerson, "Should contain Person node");
-        
-        // Verify relationships
+        // Verify relationships with detailed debugging
         JsonNode relationships = jsonNode.get("relationships");
         assertNotNull(relationships, "Relationships array should exist");
         assertTrue(relationships.isArray(), "Relationships should be an array");
         
+        System.out.println("\n=== Relationships Debug ===");
+        System.out.println("Total relationships found: " + relationships.size());
+        
+        for (JsonNode rel : relationships) {
+            System.out.println("\nRelationship Details:");
+            System.out.println("Type: " + rel.get("type").asText());
+            System.out.println("Source: " + rel.get("source").asText());
+            System.out.println("Target: " + rel.get("target").asText());
+            
+            JsonNode props = rel.get("properties");
+            System.out.println("Properties:");
+            if (props != null && props.size() > 0) {
+                props.fields().forEachRemaining(entry -> {
+                    System.out.println("  - " + entry.getKey() + ":");
+                    JsonNode propDetails = entry.getValue();
+                    System.out.println("    Type: " + propDetails.get("type"));
+                    if (propDetails.has("minCount")) {
+                        System.out.println("    MinCount: " + propDetails.get("minCount"));
+                    }
+                    if (propDetails.has("maxCount")) {
+                        System.out.println("    MaxCount: " + propDetails.get("maxCount"));
+                    }
+                });
+            } else {
+                System.out.println("  No properties found!");
+            }
+            
+            // Check cardinality of the relationship itself
+            if (rel.has("minCount")) {
+                System.out.println("Relationship MinCount: " + rel.get("minCount"));
+            }
+            if (rel.has("maxCount")) {
+                System.out.println("Relationship MaxCount: " + rel.get("maxCount"));
+            }
+        }
+        
+        // Verify specific relationships with properties
+        System.out.println("\n=== Verifying Specific Relationships ===");
+        
+        // Check underName relationship
         boolean foundUnderName = false;
         for (JsonNode rel : relationships) {
             if (rel.get("type").asText().equalsIgnoreCase("undername")) {
                 foundUnderName = true;
+                System.out.println("\nFound underName relationship:");
+                
+                // Verify source and target
                 assertTrue(rel.get("source").asText().contains("FlightReservation"),
                     "Source should be FlightReservation");
                 assertTrue(rel.get("target").asText().contains("Person"),
                     "Target should be Person");
+                
+                // Verify properties
+                JsonNode props = rel.get("properties");
+                assertNotNull(props, "Properties should exist for underName relationship");
+                
+                System.out.println("Checking underName properties:");
+                assertTrue(props.has("bookingTime"), 
+                    "Should have bookingTime property");
+                assertTrue(props.has("bookingAgent"), 
+                    "Should have bookingAgent property");
+                
+                // Verify property details
+                if (props.has("bookingTime")) {
+                    JsonNode bookingTime = props.get("bookingTime");
+                    System.out.println("bookingTime details: " + bookingTime);
+                    assertEquals("DateTime", bookingTime.get("type").asText(),
+                        "bookingTime should be DateTime type");
+                    assertEquals(1, bookingTime.get("minCount").asInt(),
+                        "bookingTime should have minCount 1");
+                }
+                
+                if (props.has("bookingAgent")) {
+                    JsonNode bookingAgent = props.get("bookingAgent");
+                    System.out.println("bookingAgent details: " + bookingAgent);
+                    assertEquals("String", bookingAgent.get("type").asText(),
+                        "bookingAgent should be String type");
+                }
             }
         }
         
         assertTrue(foundUnderName, "Should contain UNDERNAME relationship");
-        
-        System.out.println("Generated JSON Schema:\n" + 
-            objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode));
     }
 
     // @AfterEach

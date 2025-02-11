@@ -3,9 +3,10 @@ package com.kgswitch.transforms;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import com.kgswitch.models.graph.*;
-import com.kgswitch.models.constraints.PropertyConstraint;
-import com.kgswitch.transforms.pg.*;
+
+import com.kgswitch.models.graph.SchemaGraph;
+import com.kgswitch.models.graph.SchemaNode;
+import com.kgswitch.transforms.pg.PGSchemaTransformer;
 
 class PGSchemaTransformerTest {
     private PGSchemaTransformer transformer;
@@ -13,99 +14,120 @@ class PGSchemaTransformerTest {
 
     @BeforeEach
     void setUp() {
+        transformer = new PGSchemaTransformer();
         inputGraph = new SchemaGraph("test");
-        transformer = new PGSchemaTransformer(inputGraph);
     }
 
     @Test
     void testTransformToPGSchema() {
-        // Create a FlightReservation node
-        SchemaNode flightNode = new SchemaNode("http://schema.org/FlightReservationShape");
-        flightNode.addLabel("http://schema.org/FlightReservation");
+        // Create test nodes
+        SchemaNode typeStatement = new SchemaNode("type_stmt_Person");
+        typeStatement.addLabel("TypeStatement");
+        typeStatement.addProperty("predicate", "type");
+        typeStatement.addProperty("subject", "Person");
+        typeStatement.addProperty("object", "http://schema.org/Person");
+        inputGraph.addNode(typeStatement);
+
+        SchemaNode propertyStatement = new SchemaNode("prop_stmt_Person_name");
+        propertyStatement.addLabel("PropertyStatement");
+        propertyStatement.addProperty("predicate", "name");
+        propertyStatement.addProperty("subject", "Person");
+        propertyStatement.addProperty("datatype", "http://www.w3.org/2001/XMLSchema#string");
+        propertyStatement.addProperty("minCount", "1");
+        propertyStatement.addProperty("maxCount", "1");
+        inputGraph.addNode(propertyStatement);
+
+        // Transform and verify
+        SchemaGraph result = transformer.transformToPGSchema(inputGraph);
         
-        // Add property constraints for FlightReservation
-        PropertyConstraint idConstraint = new PropertyConstraint("reservationId", 
-            "http://www.w3.org/2001/XMLSchema#string");
-        idConstraint.setCardinality(1, 1);
-        flightNode.addPropertyConstraint(idConstraint);
-
-        PropertyConstraint statusConstraint = new PropertyConstraint("reservationStatus", 
-            "http://www.w3.org/2001/XMLSchema#string");
-        statusConstraint.setCardinality(1, -1);
-        flightNode.addPropertyConstraint(statusConstraint);
-
-        inputGraph.addNode(flightNode);
-
-        SchemaGraph result = transformer.transformToPGSchema();
-        assertNotNull(result);
         assertEquals("pg", result.getNamespace());
-        assertFalse(result.getNodes().isEmpty());
+        assertTrue(result.getNodes().stream()
+            .anyMatch(node -> node.getId().equals("Person")));
         
-        // Verify transformed node
-        SchemaNode transformedNode = result.getNodes().iterator().next();
-        assertTrue(transformedNode.getLabels().contains("FlightReservation"));
-        assertEquals(2, transformedNode.getPropertyConstraints().size());
+        SchemaNode personNode = result.getNodes().stream()
+            .filter(node -> node.getId().equals("Person"))
+            .findFirst()
+            .orElse(null);
+        
+        assertNotNull(personNode);
+        assertTrue(personNode.getLabels().contains("http://schema.org/Person"));
+        assertTrue(personNode.getPropertyConstraints().containsKey("name"));
     }
 
     @Test
-    void testNodeTransformation() {
-        // Create a Person node with properties
-        SchemaNode personNode = new SchemaNode("http://schema.org/PersonShape");
-        personNode.addLabel("http://schema.org/Person");
-        
-        // Add property constraints
-        PropertyConstraint givenNameConstraint = new PropertyConstraint("givenName", 
-            "http://www.w3.org/2001/XMLSchema#string");
-        givenNameConstraint.setCardinality(1, -1);
-        personNode.addPropertyConstraint(givenNameConstraint);
+    void testTransformWithRelationship() {
+        // Create nodes for relationship test
+        SchemaNode typeStatement1 = new SchemaNode("type_stmt_Person");
+        typeStatement1.addLabel("TypeStatement");
+        typeStatement1.addProperty("predicate", "type");
+        typeStatement1.addProperty("subject", "Person");
+        typeStatement1.addProperty("object", "http://schema.org/Person");
+        inputGraph.addNode(typeStatement1);
 
-        PropertyConstraint emailConstraint = new PropertyConstraint("email", 
-            "http://www.w3.org/2001/XMLSchema#string");
-        emailConstraint.setCardinality(1, 1);
-        personNode.addPropertyConstraint(emailConstraint);
+        SchemaNode typeStatement2 = new SchemaNode("type_stmt_Organization");
+        typeStatement2.addLabel("TypeStatement");
+        typeStatement2.addProperty("predicate", "type");
+        typeStatement2.addProperty("subject", "Organization");
+        typeStatement2.addProperty("object", "http://schema.org/Organization");
+        inputGraph.addNode(typeStatement2);
 
-        inputGraph.addNode(personNode);
+        SchemaNode edgeStatement = new SchemaNode("rel_Person_memberOf");
+        edgeStatement.addLabel("EdgeStatement");
+        edgeStatement.addProperty("predicate", "memberOf");
+        edgeStatement.addProperty("subject", "Person");
+        edgeStatement.addProperty("object", "Organization");
+        edgeStatement.addProperty("minCount", "0");
+        edgeStatement.addProperty("maxCount", "1");
+        inputGraph.addNode(edgeStatement);
 
-        SchemaGraph result = transformer.transformToPGSchema();
-        assertFalse(result.getNodes().isEmpty());
+        // Transform and verify
+        SchemaGraph result = transformer.transformToPGSchema(inputGraph);
         
-        SchemaNode transformedNode = result.getNodes().iterator().next();
-        assertTrue(transformedNode.getLabels().contains("Person"));
-        assertTrue(transformedNode.getPropertyConstraints().containsKey("email"));
-        assertTrue(transformedNode.getPropertyConstraints().containsKey("givenName"));
-    }
-
-    @Test
-    void testRelationshipTransformation() {
-        // Create Person and FlightReservation nodes
-        SchemaNode personNode = new SchemaNode("http://schema.org/PersonShape");
-        personNode.addLabel("http://schema.org/Person");
-        
-        SchemaNode flightNode = new SchemaNode("http://schema.org/FlightReservationShape");
-        flightNode.addLabel("http://schema.org/FlightReservation");
-        
-        // Create relationship
-        SchemaEdge edge = new SchemaEdge(
-            "rel_underName",
-            flightNode,
-            personNode,
-            "underName"
-        );
-        edge.addProperty("type", "relationship");
-        
-        inputGraph.addNode(personNode);
-        inputGraph.addNode(flightNode);
-        inputGraph.addEdge(edge);
-
-        SchemaGraph result = transformer.transformToPGSchema();
         assertFalse(result.getEdges().isEmpty());
+        assertEquals(1, result.getEdges().size());
         
-        // Verify relationship
-        SchemaEdge transformedEdge = result.getEdges().iterator().next();
-        assertEquals("UNDER_NAME", transformedEdge.getLabel());
-        assertEquals("FlightReservation", 
-            transformedEdge.getSource().getLabels().iterator().next());
-        assertEquals("Person", 
-            transformedEdge.getTarget().getLabels().iterator().next());
+        assertTrue(result.getEdges().stream()
+            .anyMatch(edge -> edge.getType().equals("MEMBEROF")));
+    }
+
+    @Test
+    void testTransformWithPropertyConstraints() {
+        // Create test nodes with property constraints
+        SchemaNode typeStatement = new SchemaNode("type_stmt_Person");
+        typeStatement.addLabel("TypeStatement");
+        typeStatement.addProperty("predicate", "type");
+        typeStatement.addProperty("subject", "Person");
+        typeStatement.addProperty("object", "http://schema.org/Person");
+        inputGraph.addNode(typeStatement);
+
+        SchemaNode propertyStatement = new SchemaNode("prop_stmt_Person_email");
+        propertyStatement.addLabel("PropertyStatement");
+        propertyStatement.addProperty("predicate", "email");
+        propertyStatement.addProperty("subject", "Person");
+        propertyStatement.addProperty("datatype", "http://www.w3.org/2001/XMLSchema#string");
+        propertyStatement.addProperty("minCount", "1");
+        propertyStatement.addProperty("maxCount", "1");
+        inputGraph.addNode(propertyStatement);
+
+        // Transform and verify
+        SchemaGraph result = transformer.transformToPGSchema(inputGraph);
+        
+        SchemaNode personNode = result.getNodes().stream()
+            .filter(node -> node.getId().equals("Person"))
+            .findFirst()
+            .orElse(null);
+        
+        assertNotNull(personNode);
+        assertTrue(personNode.getPropertyConstraints().containsKey("email"));
+        
+        // Compare cardinality values as integers
+        assertEquals(1, personNode.getPropertyConstraints().get("email")
+            .getMinCardinality());
+        assertEquals(1, personNode.getPropertyConstraints().get("email")
+            .getMaxCardinality());
+        
+        // Verify data type
+        assertEquals("String", personNode.getPropertyConstraints().get("email")
+            .getDataType());
     }
 }

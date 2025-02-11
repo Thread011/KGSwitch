@@ -172,71 +172,34 @@ public class SchemaTransformationService {
         
         for (SchemaEdge edge : edges) {
             ObjectNode relationship = objectMapper.createObjectNode();
-            relationship.put("type", edge.getLabel());
-            relationship.put("source", edge.getSource().getId());
-            relationship.put("target", edge.getTarget().getId());
+            relationship.put("type", edge.getType().toLowerCase());
+            relationship.put("source", edge.getSource().getLabels().iterator().next());
+            relationship.put("target", edge.getTarget().getLabels().iterator().next());
             
             // Add relationship properties
             ObjectNode properties = objectMapper.createObjectNode();
-            Map<String, Object> edgeProps = edge.getProperties();
             
-            // First pass: collect all base properties and their types
-            for (Map.Entry<String, Object> entry : edgeProps.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
+            // Add property constraints as properties
+            edge.getPropertyConstraints().forEach((key, constraint) -> {
+                ObjectNode propertyDetails = objectMapper.createObjectNode();
+                propertyDetails.put("type", constraint.getDataType());
                 
-                if (!key.contains("_minCount") && !key.contains("_maxCount") && 
-                    !key.equals("minCount") && !key.equals("maxCount")) {
-                    ObjectNode propertyDetails = objectMapper.createObjectNode();
-                    propertyDetails.put("type", String.valueOf(value));
-                    properties.set(key, propertyDetails);
+                if (constraint.getMinCardinality() > 0) {
+                    propertyDetails.put("minCount", constraint.getMinCardinality());
                 }
-            }
-            
-            // Second pass: add cardinality to properties
-            for (String propName : edgeProps.keySet()) {
-                if (properties.has(propName)) {
-                    ObjectNode propDetails = (ObjectNode) properties.get(propName);
-                    
-                    // Check for minCount
-                    Object minCount = edgeProps.get(propName + "_minCount");
-                    if (minCount != null) {
-                        try {
-                            propDetails.put("minCount", Integer.parseInt(String.valueOf(minCount)));
-                        } catch (NumberFormatException e) {
-                            // Skip invalid numbers
-                        }
-                    }
-                    
-                    // Check for maxCount
-                    Object maxCount = edgeProps.get(propName + "_maxCount");
-                    if (maxCount != null) {
-                        try {
-                            propDetails.put("maxCount", Integer.parseInt(String.valueOf(maxCount)));
-                        } catch (NumberFormatException e) {
-                            // Skip invalid numbers
-                        }
-                    }
+                if (constraint.getMaxCardinality() != -1) {
+                    propertyDetails.put("maxCount", constraint.getMaxCardinality());
                 }
-            }
+                
+                properties.set(key, propertyDetails);
+            });
             
             // Add relationship cardinality
-            Object minCount = edgeProps.get("minCount");
-            if (minCount != null) {
-                try {
-                    relationship.put("minCount", Integer.parseInt(String.valueOf(minCount)));
-                } catch (NumberFormatException e) {
-                    // Skip invalid numbers
-                }
+            if (edge.hasProperty("minCount")) {
+                relationship.put("minCount", edge.getProperty("minCount").toString());
             }
-            
-            Object maxCount = edgeProps.get("maxCount");
-            if (maxCount != null) {
-                try {
-                    relationship.put("maxCount", Integer.parseInt(String.valueOf(maxCount)));
-                } catch (NumberFormatException e) {
-                    // Skip invalid numbers
-                }
+            if (edge.hasProperty("maxCount")) {
+                relationship.put("maxCount", edge.getProperty("maxCount").toString());
             }
             
             relationship.set("properties", properties);

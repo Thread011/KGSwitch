@@ -2,50 +2,69 @@
   "nodes" : [ {
     "label" : "http://schema.org/Organization",
     "properties" : {
-      "legalName" : "String",
-      "name" : "String"
-    }
-  }, {
-    "label" : "http://schema.org/Flight",
-    "properties" : {
-      "flightNumber" : "String"
+      "legalName" : {
+        "type" : "String",
+        "minCount" : 1
+      },
+      "name" : {
+        "type" : "String",
+        "minCount" : 1
+      }
     }
   }, {
     "label" : "http://schema.org/Person",
     "properties" : {
-      "givenName" : "String",
-      "familyName" : "String",
-      "email" : "String"
+      "familyName" : {
+        "type" : "String",
+        "minCount" : 1
+      },
+      "givenName" : {
+        "type" : "String",
+        "minCount" : 1
+      },
+      "email" : {
+        "type" : "String",
+        "minCount" : 1,
+        "maxCount" : 1
+      }
     }
   }, {
     "label" : "http://schema.org/FlightReservation",
     "properties" : {
-      "reservationId" : "String",
-      "reservationStatus" : "String"
+      "reservationId" : {
+        "type" : "String",
+        "minCount" : 1,
+        "maxCount" : 1
+      },
+      "reservationStatus" : {
+        "type" : "String",
+        "minCount" : 1
+      }
+    }
+  }, {
+    "label" : "http://schema.org/Flight",
+    "properties" : {
+      "flightNumber" : {
+        "type" : "String",
+        "minCount" : 1,
+        "maxCount" : 1
+      }
     }
   }, {
     "label" : "http://schema.org/Airport",
     "properties" : {
-      "iataCode" : "String",
-      "name" : "String"
+      "iataCode" : {
+        "type" : "String",
+        "minCount" : 1,
+        "maxCount" : 1
+      },
+      "name" : {
+        "type" : "String",
+        "minCount" : 1
+      }
     }
   } ],
   "relationships" : [ {
-    "type" : "undername",
-    "source" : "http://schema.org/FlightReservation",
-    "target" : "http://schema.org/Person",
-    "properties" : { }
-  }, {
-    "type" : "reservationfor",
-    "source" : "http://schema.org/FlightReservation",
-    "target" : "http://schema.org/Flight",
-    "properties" : { }
-  }, {
-    "type" : "departureairport",
-    "source" : "http://schema.org/Flight",
-    "target" : "http://schema.org/Airport",
-    "properties" : { }
-  }, {
     "type" : "memberof",
     "source" : "http://schema.org/Person",
     "target" : "http://schema.org/Organization",
@@ -54,6 +73,21 @@
     "type" : "arrivalairport",
     "source" : "http://schema.org/Flight",
     "target" : "http://schema.org/Airport",
+    "properties" : { }
+  }, {
+    "type" : "departureairport",
+    "source" : "http://schema.org/Flight",
+    "target" : "http://schema.org/Airport",
+    "properties" : { }
+  }, {
+    "type" : "reservationfor",
+    "source" : "http://schema.org/FlightReservation",
+    "target" : "http://schema.org/Flight",
+    "properties" : { }
+  }, {
+    "type" : "undername",
+    "source" : "http://schema.org/FlightReservation",
+    "target" : "http://schema.org/Person",
     "properties" : { }
   } ]
 }
