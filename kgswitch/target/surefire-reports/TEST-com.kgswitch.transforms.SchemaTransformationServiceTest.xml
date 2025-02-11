@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.kgswitch.transforms.RDFSchemaTransformerTest" time="1.467" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.kgswitch.transforms.SchemaTransformationServiceTest" time="1.139" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="20"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -58,80 +58,166 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="64.0"/>
   </properties>
-  <testcase name="testDataTypeConstraints" classname="com.kgswitch.transforms.RDFSchemaTransformerTest" time="1.365">
-    <system-out><![CDATA[18:31:15.183 [main] DEBUG org.apache.jena.riot.system.stream.JenaIOEnvironment -- Failed to find configuration: location-mapping.ttl;location-mapping.rdf;etc/location-mapping.rdf;etc/location-mapping.ttl
-18:31:15.601 [main] DEBUG org.apache.jena.info -- System architecture: 64 bit
-18:31:15.662 [main] DEBUG org.apache.jena.dboe.System -- System architecture: 64 bit
-
-Processing node: test_property
+  <testcase name="testFlightSchemaTransformation" classname="com.kgswitch.transforms.SchemaTransformationServiceTest" time="1.136">
+    <system-out><![CDATA[Test setup complete. Schema file created at: C:\Users\danim\Desktop\KGSwitch\kgswitch\src\test\resources\watch\flight-schema.ttl
+Starting transformation for schema: C:\Users\danim\Desktop\KGSwitch\kgswitch\src\test\resources\watch\flight-schema.ttl
+18:31:16.921 [main] DEBUG org.apache.jena.riot.system.stream.StreamManager -- Not mapped: C:\Users\danim\Desktop\KGSwitch\kgswitch\src\test\resources\watch\flight-schema.ttl
+18:31:16.936 [main] DEBUG org.apache.jena.riot.system.stream.StreamManager -- Found: C:\Users\danim\Desktop\KGSwitch\kgswitch\src\test\resources\watch\flight-schema.ttl (LocatorFile)
+Created node: Organization with class: Organization
+Created node: Person with class: Person
+Created node: Flight with class: Flight
+Created node: FlightReservation with class: FlightReservation
+Created node: Airport with class: Airport
+Added relationship: MEMBEROF from Person to Organization
+Added relationship: ARRIVALAIRPORT from Flight to Airport
+Added relationship: DEPARTUREAIRPORT from Flight to Airport
+Added relationship: RESERVATIONFOR from FlightReservation to Flight
+Added relationship: UNDERNAME from FlightReservation to Person
+RDF Statement Graph contains 5 nodes and 5 edges
+Created relationship statement: rel_Flight_arrivalairport with predicate: arrivalairport
+Created relationship statement: rel_FlightReservation_undername with predicate: undername
+Created relationship statement: rel_Person_memberof with predicate: memberof
+Created relationship statement: rel_FlightReservation_reservationfor with predicate: reservationfor
+Created relationship statement: rel_Flight_departureairport with predicate: departureairport
+PG Statement Graph contains 20 nodes and 0 edges
+Starting PG Schema transformation with 20 nodes
+Processing statement: prop_stmt_Airport_iataCode
 Labels: [PropertyStatement]
-Properties: {predicate=reservationId, datatype=http://www.w3.org/2001/XMLSchema#string, subject=FlightReservation}
-Processing property statement:
-  Subject: FlightReservation
-  Predicate: reservationId
-  Properties: {predicate=reservationId, datatype=http://www.w3.org/2001/XMLSchema#string, subject=FlightReservation}
-Creating new shape for: FlightReservation
-  Adding datatype: http://www.w3.org/2001/XMLSchema#string
-Created property shape with properties:
-  http://www.w3.org/ns/shacl#datatype -> http://www.w3.org/2001/XMLSchema#string
-  http://www.w3.org/ns/shacl#path -> http://schema.org/reservationId
-  http://www.w3.org/1999/02/22-rdf-syntax-ns#type -> http://www.w3.org/ns/shacl#PropertyShape
-
-Final RDF Model:
-[5a0eca5f-878a-46a6-80cb-bf808f69a8c7, http://www.w3.org/ns/shacl#datatype, http://www.w3.org/2001/XMLSchema#string]
-[5a0eca5f-878a-46a6-80cb-bf808f69a8c7, http://www.w3.org/ns/shacl#path, http://schema.org/reservationId]
-[5a0eca5f-878a-46a6-80cb-bf808f69a8c7, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#PropertyShape]
-[http://schema.org/FlightReservationShape, http://www.w3.org/ns/shacl#property, 5a0eca5f-878a-46a6-80cb-bf808f69a8c7]
-[http://schema.org/FlightReservationShape, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#NodeShape]
-
-Property shape properties:
-[5a0eca5f-878a-46a6-80cb-bf808f69a8c7, http://www.w3.org/ns/shacl#datatype, http://www.w3.org/2001/XMLSchema#string]
-[5a0eca5f-878a-46a6-80cb-bf808f69a8c7, http://www.w3.org/ns/shacl#path, http://schema.org/reservationId]
-[5a0eca5f-878a-46a6-80cb-bf808f69a8c7, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#PropertyShape]
-]]></system-out>
-  </testcase>
-  <testcase name="testNodeShape" classname="com.kgswitch.transforms.RDFSchemaTransformerTest" time="0.007">
-    <system-out><![CDATA[
-Processing node: test_type
+Properties: {predicate=iataCode, datatype=http://www.w3.org/2001/XMLSchema#string, subject=Airport, minCount=1, maxCount=1}
+Processing statement: rel_Flight_departureairport
+Labels: [EdgeStatement]
+Properties: {predicate=departureairport, subject=Flight, minCount=1, maxCount=1, object=Airport}
+Processing statement: prop_stmt_FlightReservation_reservationId
+Labels: [PropertyStatement]
+Properties: {predicate=reservationId, datatype=http://www.w3.org/2001/XMLSchema#string, subject=FlightReservation, minCount=1, maxCount=1}
+Processing statement: prop_stmt_Airport_name
+Labels: [PropertyStatement]
+Properties: {predicate=name, datatype=http://www.w3.org/2001/XMLSchema#string, subject=Airport, minCount=1, maxCount=-1}
+Processing statement: prop_stmt_Flight_flightNumber
+Labels: [PropertyStatement]
+Properties: {predicate=flightNumber, datatype=http://www.w3.org/2001/XMLSchema#string, subject=Flight, minCount=1, maxCount=1}
+Processing statement: rel_FlightReservation_undername
+Labels: [EdgeStatement]
+Properties: {predicate=undername, subject=FlightReservation, minCount=1, maxCount=1, object=Person}
+Processing statement: type_stmt_Person
+Labels: [TypeStatement]
+Properties: {predicate=type, subject=Person, object=http://schema.org/Person}
+Created node: Person with label: http://schema.org/Person
+Processing statement: prop_stmt_Person_email
+Labels: [PropertyStatement]
+Properties: {predicate=email, datatype=http://www.w3.org/2001/XMLSchema#string, subject=Person, minCount=1, maxCount=1}
+Processing statement: type_stmt_FlightReservation
 Labels: [TypeStatement]
 Properties: {predicate=type, subject=FlightReservation, object=http://schema.org/FlightReservation}
-
-Final RDF Model:
-[http://schema.org/FlightReservationShape, http://www.w3.org/ns/shacl#targetClass, http://schema.org/FlightReservation]
-[http://schema.org/FlightReservationShape, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#NodeShape]
-]]></system-out>
-  </testcase>
-  <testcase name="testCardinalityConstraints" classname="com.kgswitch.transforms.RDFSchemaTransformerTest" time="0.04">
-    <system-out><![CDATA[
-Processing node: test_property
+Created node: FlightReservation with label: http://schema.org/FlightReservation
+Processing statement: type_stmt_Flight
+Labels: [TypeStatement]
+Properties: {predicate=type, subject=Flight, object=http://schema.org/Flight}
+Created node: Flight with label: http://schema.org/Flight
+Processing statement: prop_stmt_Person_givenName
 Labels: [PropertyStatement]
-Properties: {predicate=reservationId, subject=FlightReservation, minCount=1}
-Processing property statement:
-  Subject: FlightReservation
-  Predicate: reservationId
-  Properties: {predicate=reservationId, subject=FlightReservation, minCount=1}
-Creating new shape for: FlightReservation
-Created property shape with properties:
-  http://www.w3.org/ns/shacl#minCount -> 1^^http://www.w3.org/2001/XMLSchema#int
-  http://www.w3.org/ns/shacl#path -> http://schema.org/reservationId
-  http://www.w3.org/1999/02/22-rdf-syntax-ns#type -> http://www.w3.org/ns/shacl#PropertyShape
-
-Final RDF Model:
-[b63b1c5d-67aa-4684-a53d-1b0aec0be460, http://www.w3.org/ns/shacl#minCount, "1"^^http://www.w3.org/2001/XMLSchema#int]
-[b63b1c5d-67aa-4684-a53d-1b0aec0be460, http://www.w3.org/ns/shacl#path, http://schema.org/reservationId]
-[b63b1c5d-67aa-4684-a53d-1b0aec0be460, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#PropertyShape]
-[http://schema.org/FlightReservationShape, http://www.w3.org/ns/shacl#property, b63b1c5d-67aa-4684-a53d-1b0aec0be460]
-[http://schema.org/FlightReservationShape, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#NodeShape]
-
-Property shape properties:
-[b63b1c5d-67aa-4684-a53d-1b0aec0be460, http://www.w3.org/ns/shacl#minCount, "1"^^http://www.w3.org/2001/XMLSchema#int]
-[b63b1c5d-67aa-4684-a53d-1b0aec0be460, http://www.w3.org/ns/shacl#path, http://schema.org/reservationId]
-[b63b1c5d-67aa-4684-a53d-1b0aec0be460, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#PropertyShape]
-]]></system-out>
-  </testcase>
-  <testcase name="testTransformToRDF" classname="com.kgswitch.transforms.RDFSchemaTransformerTest" time="0.015">
-    <system-out><![CDATA[
-Final RDF Model:
+Properties: {predicate=givenName, datatype=http://www.w3.org/2001/XMLSchema#string, subject=Person, minCount=1, maxCount=-1}
+Processing statement: prop_stmt_Organization_name
+Labels: [PropertyStatement]
+Properties: {predicate=name, datatype=http://www.w3.org/2001/XMLSchema#string, subject=Organization, minCount=1, maxCount=-1}
+Processing statement: rel_Person_memberof
+Labels: [EdgeStatement]
+Properties: {predicate=memberof, subject=Person, minCount=0, object=Organization}
+Processing statement: rel_Flight_arrivalairport
+Labels: [EdgeStatement]
+Properties: {predicate=arrivalairport, subject=Flight, minCount=1, maxCount=1, object=Airport}
+Processing statement: type_stmt_Airport
+Labels: [TypeStatement]
+Properties: {predicate=type, subject=Airport, object=http://schema.org/Airport}
+Created node: Airport with label: http://schema.org/Airport
+Processing statement: type_stmt_Organization
+Labels: [TypeStatement]
+Properties: {predicate=type, subject=Organization, object=http://schema.org/Organization}
+Created node: Organization with label: http://schema.org/Organization
+Processing statement: prop_stmt_FlightReservation_reservationStatus
+Labels: [PropertyStatement]
+Properties: {predicate=reservationStatus, datatype=http://www.w3.org/2001/XMLSchema#string, subject=FlightReservation, minCount=1, maxCount=-1}
+Processing statement: rel_FlightReservation_reservationfor
+Labels: [EdgeStatement]
+Properties: {predicate=reservationfor, subject=FlightReservation, minCount=1, maxCount=1, object=Flight}
+Processing statement: prop_stmt_Organization_legalName
+Labels: [PropertyStatement]
+Properties: {predicate=legalName, datatype=http://www.w3.org/2001/XMLSchema#string, subject=Organization, minCount=1, maxCount=-1}
+Processing statement: prop_stmt_Person_familyName
+Labels: [PropertyStatement]
+Properties: {predicate=familyName, datatype=http://www.w3.org/2001/XMLSchema#string, subject=Person, minCount=1, maxCount=-1}
+After type statements: 5 nodes
+After property statements: 5 nodes
+After relationship statements: 5 nodes
+Final node map size: 5
+Final schema nodes: 5
+PG Schema contains 5 nodes and 5 edges
+Added relationship property shape: departureairport from Flight to Airport
+Added relationship property shape: undername from FlightReservation to Person
+Added relationship property shape: memberof from Person to Organization
+Added relationship property shape: arrivalairport from Flight to Airport
+Added relationship property shape: reservationfor from FlightReservation to Flight
+Transformation completed successfully. Files should be created.
+Generated JSON Schema:
+{
+  "nodes" : [ {
+    "label" : "http://schema.org/Organization",
+    "properties" : {
+      "legalName" : "String",
+      "name" : "String"
+    }
+  }, {
+    "label" : "http://schema.org/Flight",
+    "properties" : {
+      "flightNumber" : "String"
+    }
+  }, {
+    "label" : "http://schema.org/Person",
+    "properties" : {
+      "givenName" : "String",
+      "familyName" : "String",
+      "email" : "String"
+    }
+  }, {
+    "label" : "http://schema.org/FlightReservation",
+    "properties" : {
+      "reservationId" : "String",
+      "reservationStatus" : "String"
+    }
+  }, {
+    "label" : "http://schema.org/Airport",
+    "properties" : {
+      "iataCode" : "String",
+      "name" : "String"
+    }
+  } ],
+  "relationships" : [ {
+    "type" : "undername",
+    "source" : "http://schema.org/FlightReservation",
+    "target" : "http://schema.org/Person",
+    "properties" : { }
+  }, {
+    "type" : "reservationfor",
+    "source" : "http://schema.org/FlightReservation",
+    "target" : "http://schema.org/Flight",
+    "properties" : { }
+  }, {
+    "type" : "departureairport",
+    "source" : "http://schema.org/Flight",
+    "target" : "http://schema.org/Airport",
+    "properties" : { }
+  }, {
+    "type" : "memberof",
+    "source" : "http://schema.org/Person",
+    "target" : "http://schema.org/Organization",
+    "properties" : { }
+  }, {
+    "type" : "arrivalairport",
+    "source" : "http://schema.org/Flight",
+    "target" : "http://schema.org/Airport",
+    "properties" : { }
+  } ]
+}
 ]]></system-out>
   </testcase>
 </testsuite>
