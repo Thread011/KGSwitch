@@ -1,17 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.kgswitch.transforms.PGSchemaTransformerTest
 -------------------------------------------------------------------------------
-Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.134 s <<< FAILURE! -- in com.kgswitch.transforms.PGSchemaTransformerTest
-com.kgswitch.transforms.PGSchemaTransformerTest.testTransformWithPropertyConstraints -- Time elapsed: 0.013 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: expected: <String> but was: <http://www.w3.org/2001/XMLSchema#string>
-	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
-	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
-	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
-	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
-	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
-	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
-	at com.kgswitch.transforms.PGSchemaTransformerTest.testTransformWithPropertyConstraints(PGSchemaTransformerTest.java:130)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:578)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
-
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.137 s -- in com.kgswitch.transforms.PGSchemaTransformerTest
