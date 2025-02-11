@@ -30,7 +30,7 @@ public class PGSchemaToStatementTransformer {
         
         // Finally create relationship statements
         for (SchemaEdge edge : pgSchema.getEdges()) {
-            createRelationshipStatement(edge);
+            processEdge(edge, statementGraph);
         }
         
         return statementGraph;
@@ -70,29 +70,26 @@ public class PGSchemaToStatementTransformer {
         }
     }
     
-    private void createRelationshipStatement(SchemaEdge edge) {
-        String relationshipType = edge.getLabel().toLowerCase()
-            .replace("_", "");
+    private void processEdge(SchemaEdge edge, SchemaGraph statementGraph) {
+        SchemaNode statement = new SchemaNode("rel_" + edge.getSource().getId() + "_" + edge.getType().toLowerCase());
+        statement.addLabel("EdgeStatement");
         
-        SchemaNode relationshipStatement = new SchemaNode(
-            "rel_" + edge.getSource().getId() + "_" + relationshipType);
-        relationshipStatement.addLabel("EdgeStatement");
-        relationshipStatement.addProperty("subject", edge.getSource().getId());
-        relationshipStatement.addProperty("predicate", relationshipType);
-        relationshipStatement.addProperty("object", edge.getTarget().getId());
+        statement.addProperty("predicate", edge.getType().toLowerCase());
+        statement.addProperty("subject", edge.getSource().getId());
+        statement.addProperty("object", edge.getTarget().getId());
         
-        // Add cardinality if present
         if (edge.hasProperty("minCount")) {
-            relationshipStatement.addProperty("minCount", 
-                edge.getProperties().get("minCount").toString());
+            statement.addProperty("minCount", edge.getProperty("minCount").toString());
         }
         if (edge.hasProperty("maxCount")) {
-            relationshipStatement.addProperty("maxCount", 
-                edge.getProperties().get("maxCount").toString());
+            statement.addProperty("maxCount", edge.getProperty("maxCount").toString());
         }
         
-        statementGraph.addNode(relationshipStatement);
-        System.out.println("Created relationship statement: " + relationshipStatement.getId() + 
-                          " with predicate: " + relationshipType);
+        // Transfer property constraints
+        edge.getPropertyConstraints().forEach((key, constraint) -> {
+            statement.addPropertyConstraint(constraint);
+        });
+        
+        statementGraph.addNode(statement);
     }
 }

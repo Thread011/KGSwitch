@@ -35,8 +35,16 @@ public class JsonSchemaGenerator {
                          node.getPropertyConstraints().entrySet()) {
                         String propertyName = entry.getKey();
                         PropertyConstraint constraint = entry.getValue();
-                        String dataType = getSimpleDataType(constraint.getDataType());
-                        propsObj.put(propertyName, dataType);
+                        ObjectNode propertyObj = propsObj.putObject(propertyName);
+                        propertyObj.put("type", getSimpleDataType(constraint.getDataType()));
+                        
+                        // Add cardinality if present
+                        if (constraint.getMinCardinality() > 0) {
+                            propertyObj.put("minCount", constraint.getMinCardinality());
+                        }
+                        if (constraint.getMaxCardinality() != -1) {
+                            propertyObj.put("maxCount", constraint.getMaxCardinality());
+                        }
                     }
                 }
             }
@@ -53,17 +61,15 @@ public class JsonSchemaGenerator {
                 relObj.put("source", edge.getSource().getLabels().iterator().next());
                 relObj.put("target", edge.getTarget().getLabels().iterator().next());
                 
-                // Add properties if any
-                ObjectNode relProps = relObj.putObject("properties");
-                Map<String, Object> edgeProps = edge.getProperties();
-                for (Map.Entry<String, Object> entry : edgeProps.entrySet()) {
-                    String key = entry.getKey();
-                    if (!key.equals("minCount") && !key.equals("maxCount")) {
-                        Object value = entry.getValue();
-                        if (value != null) {
-                            relProps.put(key, value.toString());
-                        }
-                    }
+                // Add properties
+                addRelationshipProperties(relObj, edge);
+                
+                // Add relationship cardinality if present
+                if (edge.getProperties().containsKey("minCount")) {
+                    relObj.put("minCount", edge.getProperties().get("minCount").toString());
+                }
+                if (edge.getProperties().containsKey("maxCount")) {
+                    relObj.put("maxCount", edge.getProperties().get("maxCount").toString());
                 }
             }
             
@@ -72,6 +78,46 @@ public class JsonSchemaGenerator {
         } catch (Exception e) {
             System.err.println("Error generating JSON: " + e.getMessage());
             return "{}";
+        }
+    }
+    
+    private void addRelationshipProperties(ObjectNode relationshipNode, SchemaEdge edge) {
+        ObjectNode properties = mapper.createObjectNode();
+        
+        // Add properties from edge's property constraints
+        for (Map.Entry<String, PropertyConstraint> entry : edge.getPropertyConstraints().entrySet()) {
+            String propertyName = entry.getKey();
+            PropertyConstraint constraint = entry.getValue();
+            
+            ObjectNode propertyNode = mapper.createObjectNode();
+            propertyNode.put("type", getSimpleDataType(constraint.getDataType()));
+            
+            if (constraint.getMinCardinality() > 0) {
+                propertyNode.put("minCount", constraint.getMinCardinality());
+            }
+            if (constraint.getMaxCardinality() != -1) {
+                propertyNode.put("maxCount", constraint.getMaxCardinality());
+            }
+            
+            properties.set(propertyName, propertyNode);
+        }
+        
+        // Add relationship cardinality if present
+        if (edge.hasProperty("minCount")) {
+            relationshipNode.put("minCount", edge.getProperty("minCount").toString());
+        }
+        if (edge.hasProperty("maxCount")) {
+            relationshipNode.put("maxCount", edge.getProperty("maxCount").toString());
+        }
+        
+        relationshipNode.set("properties", properties);
+        
+        // Debug output
+        if (edge.getPropertyConstraints().isEmpty()) {
+            System.out.println("Warning: No property constraints found for relationship: " + edge.getLabel());
+        } else {
+            System.out.println("Added " + edge.getPropertyConstraints().size() + 
+                             " properties to relationship: " + edge.getLabel());
         }
     }
     
@@ -99,5 +145,24 @@ public class JsonSchemaGenerator {
             }
         }
         return "String";
+    }
+
+    private String getJsonType(String dataType) {
+        if (dataType == null) return "String";
+        
+        switch (dataType.toLowerCase()) {
+            case "http://www.w3.org/2001/xmlschema#string":
+                return "String";
+            case "http://www.w3.org/2001/xmlschema#integer":
+                return "Integer";
+            case "http://www.w3.org/2001/xmlschema#boolean":
+                return "Boolean";
+            case "http://www.w3.org/2001/xmlschema#datetime":
+                return "DateTime";
+            case "http://www.w3.org/2001/xmlschema#date":
+                return "Date";
+            default:
+                return "String";
+        }
     }
 } 

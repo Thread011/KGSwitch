@@ -8,54 +8,122 @@ import com.kgswitch.models.graph.SchemaNode;
 import java.util.*;
 
 public class PGSchemaTransformer {
-    private final SchemaGraph statementGraph;
-    
-    public PGSchemaTransformer(SchemaGraph statementGraph) {
-        this.statementGraph = statementGraph;
-    }
-    
-    public SchemaGraph transformToPGSchema() {
-        SchemaGraph pgSchema = new SchemaGraph("pg");
-        Map<String, SchemaNode> nodeMap = new HashMap<>();
-
-        // Process nodes
+    public SchemaGraph transformToPGSchema(SchemaGraph statementGraph) {
+        SchemaGraph pgSchema = new SchemaGraph("pg", "pg");
+        
+        // Process nodes first
         for (SchemaNode node : statementGraph.getNodes()) {
-            // Process statement nodes that represent type definitions
-            if (hasTypeDefinition(node)) {
-                SchemaNode pgNode = createPGNode(node);
-                pgSchema.addNode(pgNode);
-                nodeMap.put(node.getId(), pgNode);
-                System.out.println("Created PG node: " + pgNode.getId() + 
-                                 " with labels: " + pgNode.getLabels());
+            if (node.getLabels().contains("TypeStatement")) {
+                processTypeStatement(node, pgSchema);
             }
         }
-
-        // Process relationships
-        for (SchemaEdge edge : statementGraph.getEdges()) {
-            if (isValidRelationship(edge)) {
-                SchemaNode source = nodeMap.get(edge.getSource().getId());
-                SchemaNode target = nodeMap.get(edge.getTarget().getId());
-                
-                if (source != null && target != null) {
-                    String normalizedLabel = normalizeRelationshipType(edge.getLabel());
-                    SchemaEdge pgEdge = new SchemaEdge(
-                        edge.getId(),
-                        source,
-                        target,
-                        normalizedLabel
-                    );
-                    
-                    // Copy properties
-                    edge.getProperties().forEach(pgEdge::addProperty);
-                    pgSchema.addEdge(pgEdge);
-                    
-                    System.out.println("Created PG edge: " + pgEdge.getLabel() + 
-                                     " between " + source.getId() + " and " + target.getId());
-                }
+        
+        // Process property statements
+        for (SchemaNode node : statementGraph.getNodes()) {
+            if (node.getLabels().contains("PropertyStatement")) {
+                processPropertyStatement(node, pgSchema);
+            }
+        }
+        
+        // Process edge statements
+        for (SchemaNode node : statementGraph.getNodes()) {
+            if (node.getLabels().contains("EdgeStatement")) {
+                processEdgeStatement(node, pgSchema);
             }
         }
         
         return pgSchema;
+    }
+
+    private void processTypeStatement(SchemaNode statement, SchemaGraph pgSchema) {
+        String subject = statement.getProperties().get("subject").toString();
+        String object = statement.getProperties().get("object").toString();
+        
+        SchemaNode node = new SchemaNode(subject);
+        node.addLabel(object);
+        pgSchema.addNode(node);
+        
+        System.out.println("Created node: " + subject + " with label: " + object);
+    }
+
+    private void processPropertyStatement(SchemaNode statement, SchemaGraph pgSchema) {
+        String subject = statement.getProperties().get("subject").toString();
+        String predicate = statement.getProperties().get("predicate").toString();
+        String datatype = statement.getProperties().get("datatype").toString();
+        
+        SchemaNode node = pgSchema.getNode(subject);
+        if (node != null) {
+            PropertyConstraint constraint = new PropertyConstraint(predicate, datatype);
+            
+            // Set cardinality if present
+            if (statement.getProperties().containsKey("minCount") && 
+                statement.getProperties().containsKey("maxCount")) {
+                int minCount = Integer.parseInt(statement.getProperties().get("minCount").toString());
+                int maxCount = Integer.parseInt(statement.getProperties().get("maxCount").toString());
+                constraint.setCardinality(minCount, maxCount);
+            }
+            
+            node.addPropertyConstraint(constraint);
+        }
+    }
+
+    private void processEdgeStatement(SchemaNode statement, SchemaGraph pgSchema) {
+        String source = statement.getProperties().get("subject").toString();
+        String predicate = statement.getProperties().get("predicate").toString();
+        String target = statement.getProperties().get("object").toString();
+        
+        SchemaNode sourceNode = pgSchema.getNode(source);
+        SchemaNode targetNode = pgSchema.getNode(target);
+        
+        if (sourceNode != null && targetNode != null) {
+            SchemaEdge edge = new SchemaEdge(
+                source + "_" + predicate + "_" + target,
+                sourceNode,
+                targetNode,
+                predicate.toUpperCase()
+            );
+            
+            // Transfer property constraints from statement to edge
+            statement.getPropertyConstraints().forEach((key, constraint) -> {
+                PropertyConstraint newConstraint = new PropertyConstraint(
+                    key,
+                    mapDataType(constraint.getDataType())
+                );
+                newConstraint.setCardinality(
+                    constraint.getMinCardinality(),
+                    constraint.getMaxCardinality()
+                );
+                edge.addPropertyConstraint(newConstraint);
+            });
+            
+            // Transfer properties from statement to edge
+            statement.getProperties().forEach((key, value) -> {
+                // Skip the standard edge properties
+                if (!key.equals("subject") && !key.equals("predicate") && 
+                    !key.equals("object") && !key.equals("minCount") && 
+                    !key.equals("maxCount")) {
+                    // Create property constraint for each property
+                    PropertyConstraint propConstraint = new PropertyConstraint(
+                        key, 
+                        mapDataType(value.toString())
+                    );
+                    propConstraint.setCardinality(1, 1); // Default cardinality
+                    edge.addPropertyConstraint(propConstraint);
+                }
+            });
+
+            // Add cardinality properties
+            if (statement.getProperties().containsKey("minCount")) {
+                edge.addProperty("minCount", statement.getProperties().get("minCount").toString());
+            }
+            if (statement.getProperties().containsKey("maxCount")) {
+                edge.addProperty("maxCount", statement.getProperties().get("maxCount").toString());
+            }
+            
+            pgSchema.addEdge(edge);
+            System.out.println("Added edge " + predicate + " with " + 
+                             statement.getPropertyConstraints().size() + " properties");
+        }
     }
 
     private boolean hasTypeDefinition(SchemaNode node) {
