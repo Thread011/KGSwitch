@@ -82,26 +82,69 @@ public class PGStatementToSchemaTransformer {
         }
     }
 
-    private void processRelationshipStatements(SchemaGraph pgSchema) {
-        for (SchemaNode statement : statementGraph.getNodes()) {
-            if (statement.getLabels().contains("EdgeStatement")) {
-                String source = statement.getProperties().get("subject").toString();
-                String target = statement.getProperties().get("object").toString();
-                String relationship = statement.getProperties().get("predicate").toString();
-                
-                SchemaNode sourceNode = nodeMap.get(source);
-                SchemaNode targetNode = nodeMap.get(target);
-                
-                if (sourceNode != null && targetNode != null) {
-                    SchemaEdge edge = new SchemaEdge(
-                        source + "_" + relationship + "_" + target,
-                        sourceNode,
-                        targetNode,
-                        relationship
-                    );
-                    pgSchema.addEdge(edge);
+private void processRelationshipStatements(SchemaGraph pgSchema) {
+    for (SchemaNode statement : statementGraph.getNodes()) {
+        if (statement.getLabels().contains("EdgeStatement")) {
+            String source = statement.getProperties().get("subject").toString();
+            String target = statement.getProperties().get("object").toString();
+            String relationship = statement.getProperties().get("predicate").toString();
+            
+            SchemaNode sourceNode = nodeMap.get(source);
+            SchemaNode targetNode = nodeMap.get(target);
+            
+            if (sourceNode != null && targetNode != null) {
+                SchemaEdge edge = new SchemaEdge(
+                    source + "_" + relationship + "_" + target,
+                    sourceNode,
+                    targetNode,
+                    relationship
+                );
+
+                // Transfer property constraints from the statement
+                statement.getPropertyConstraints().forEach((key, constraint) -> {
+                    System.out.println("Transferring property constraint from statement: " + key);
+                    edge.addPropertyConstraint(constraint);
+                });
+
+                // Transfer cardinality if present
+                if (statement.getProperties().containsKey("minCount")) {
+                    edge.addProperty("minCount", statement.getProperties().get("minCount").toString());
                 }
+                if (statement.getProperties().containsKey("maxCount")) {
+                    edge.addProperty("maxCount", statement.getProperties().get("maxCount").toString());
+                }
+
+                // Look for related property statements that define relationship properties
+                for (SchemaNode propStatement : statementGraph.getNodes()) {
+                    if (propStatement.getLabels().contains("PropertyStatement") &&
+                        propStatement.getProperties().containsKey("subject") &&
+                        propStatement.getProperties().get("subject").toString().equals(relationship)) {
+                        
+                        String propertyName = propStatement.getProperties().get("predicate").toString();
+                        String dataType = propStatement.getProperties().get("datatype").toString();
+                        
+                        System.out.println("Found relationship property statement: " + propertyName);
+                        
+                        PropertyConstraint constraint = new PropertyConstraint(propertyName, dataType);
+                        
+                        // Set cardinality if present
+                        if (propStatement.getProperties().containsKey("minCount") && 
+                            propStatement.getProperties().containsKey("maxCount")) {
+                            int minCount = Integer.parseInt(propStatement.getProperties().get("minCount").toString());
+                            int maxCount = Integer.parseInt(propStatement.getProperties().get("maxCount").toString());
+                            constraint.setCardinality(minCount, maxCount);
+                        }
+                        
+                        edge.addPropertyConstraint(constraint);
+                        System.out.println("Added property constraint to edge: " + propertyName);
+                    }
+                }
+                
+                pgSchema.addEdge(edge);
+                System.out.println("Added edge with " + edge.getPropertyConstraints().size() + 
+                                 " property constraints: " + edge.getPropertyConstraints().keySet());
             }
         }
     }
+}
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.kgswitch.transforms.RDFSchemaTransformerTest" time="0.859" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.kgswitch.transforms.StatementGraphTransformerTest" time="0.041" tests="5" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="20"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -58,80 +58,135 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="64.0"/>
   </properties>
-  <testcase name="testDataTypeConstraints" classname="com.kgswitch.transforms.RDFSchemaTransformerTest" time="0.827">
-    <system-out><![CDATA[12:12:28.446 [main] DEBUG org.apache.jena.riot.system.stream.JenaIOEnvironment -- Failed to find configuration: location-mapping.ttl;location-mapping.rdf;etc/location-mapping.rdf;etc/location-mapping.ttl
-12:12:28.778 [main] DEBUG org.apache.jena.info -- System architecture: 64 bit
-12:12:28.814 [main] DEBUG org.apache.jena.dboe.System -- System architecture: 64 bit
+  <testcase name="testComplexPropertyConstraints" classname="com.kgswitch.transforms.StatementGraphTransformerTest" time="0.009">
+    <system-out><![CDATA[
+=== Starting New Test ===
 
-Processing node: test_property
-Labels: [PropertyStatement]
-Properties: {predicate=reservationId, datatype=http://www.w3.org/2001/XMLSchema#string, subject=FlightReservation}
-Processing property statement:
-  Subject: FlightReservation
-  Predicate: reservationId
-  Properties: {predicate=reservationId, datatype=http://www.w3.org/2001/XMLSchema#string, subject=FlightReservation}
-Creating new shape for: FlightReservation
-  Adding datatype: http://www.w3.org/2001/XMLSchema#string
-Created property shape with properties:
-  http://www.w3.org/ns/shacl#datatype -> http://www.w3.org/2001/XMLSchema#string
-  http://www.w3.org/ns/shacl#path -> http://schema.org/reservationId
-  http://www.w3.org/1999/02/22-rdf-syntax-ns#type -> http://www.w3.org/ns/shacl#PropertyShape
-
-Final RDF Model:
-[4abfdf50-47ab-4c78-bb94-e3ee25b14e4e, http://www.w3.org/ns/shacl#datatype, http://www.w3.org/2001/XMLSchema#string]
-[4abfdf50-47ab-4c78-bb94-e3ee25b14e4e, http://www.w3.org/ns/shacl#path, http://schema.org/reservationId]
-[4abfdf50-47ab-4c78-bb94-e3ee25b14e4e, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#PropertyShape]
-[http://schema.org/FlightReservationShape, http://www.w3.org/ns/shacl#property, 4abfdf50-47ab-4c78-bb94-e3ee25b14e4e]
-[http://schema.org/FlightReservationShape, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#NodeShape]
-
-Property shape properties:
-[4abfdf50-47ab-4c78-bb94-e3ee25b14e4e, http://www.w3.org/ns/shacl#datatype, http://www.w3.org/2001/XMLSchema#string]
-[4abfdf50-47ab-4c78-bb94-e3ee25b14e4e, http://www.w3.org/ns/shacl#path, http://schema.org/reservationId]
-[4abfdf50-47ab-4c78-bb94-e3ee25b14e4e, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#PropertyShape]
+=== Testing Complex Property Constraints ===
+Created source node with complex constraints:
+  ID: Flight
+  Properties:
+    passengers: min=0, max=-1
+    flightNumber: min=1, max=1
+Starting PG Schema transformation with 1 nodes
+Transforming node: Flight
+  Labels: [Flight]
+  Properties: {}
+Copying label: Flight
+Copying constraint: passengers
+Copying constraint: flightNumber
+Created PG Schema with 1 nodes
+Transformed node constraints:
+    passengers: min=0, max=-1
+    flightNumber: min=1, max=1
 ]]></system-out>
   </testcase>
-  <testcase name="testNodeShape" classname="com.kgswitch.transforms.RDFSchemaTransformerTest" time="0.002">
+  <testcase name="testEdgePropertyPreservation" classname="com.kgswitch.transforms.StatementGraphTransformerTest" time="0.016">
     <system-out><![CDATA[
-Processing node: test_type
-Labels: [TypeStatement]
-Properties: {predicate=type, subject=FlightReservation, object=http://schema.org/FlightReservation}
+=== Starting New Test ===
 
-Final RDF Model:
-[http://schema.org/FlightReservationShape, http://www.w3.org/ns/shacl#targetClass, http://schema.org/FlightReservation]
-[http://schema.org/FlightReservationShape, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#NodeShape]
+=== Testing Edge Property Preservation ===
+Created source nodes:
+  Flight: Flight with labels: [Flight]
+  Airport: Airport with labels: [Airport]
+Created edge with properties:
+  ID: DEPARTS
+  Properties:
+    scheduledTime: type=DateTime, min=1, max=1
+    gate: type=String, min=0, max=1
+Starting PG Schema transformation with 2 nodes
+Transforming node: Airport
+  Labels: [Airport]
+  Properties: {}
+Copying label: Airport
+Transforming node: Flight
+  Labels: [Flight]
+  Properties: {}
+Copying label: Flight
+Created PG Schema with 2 nodes
+Transforming edge: DEPARTS
+  Copied edge constraint: scheduledTime
+  Copied edge constraint: gate
+  Added edge: DEPARTS with 2 property constraints
+Transformed edge properties:
+    scheduledTime: type=DateTime, min=1, max=1
+    gate: type=String, min=0, max=1
 ]]></system-out>
   </testcase>
-  <testcase name="testCardinalityConstraints" classname="com.kgswitch.transforms.RDFSchemaTransformerTest" time="0.017">
+  <testcase name="testNestedProperties" classname="com.kgswitch.transforms.StatementGraphTransformerTest" time="0.003">
     <system-out><![CDATA[
-Processing node: test_property
-Labels: [PropertyStatement]
-Properties: {predicate=reservationId, subject=FlightReservation, minCount=1}
-Processing property statement:
-  Subject: FlightReservation
-  Predicate: reservationId
-  Properties: {predicate=reservationId, subject=FlightReservation, minCount=1}
-Creating new shape for: FlightReservation
-Created property shape with properties:
-  http://www.w3.org/ns/shacl#minCount -> 1^^http://www.w3.org/2001/XMLSchema#int
-  http://www.w3.org/ns/shacl#path -> http://schema.org/reservationId
-  http://www.w3.org/1999/02/22-rdf-syntax-ns#type -> http://www.w3.org/ns/shacl#PropertyShape
+=== Starting New Test ===
 
-Final RDF Model:
-[http://schema.org/FlightReservationShape, http://www.w3.org/ns/shacl#property, 8e15aeb1-3e57-4ecd-8fcf-13a159def0f5]
-[http://schema.org/FlightReservationShape, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#NodeShape]
-[8e15aeb1-3e57-4ecd-8fcf-13a159def0f5, http://www.w3.org/ns/shacl#minCount, "1"^^http://www.w3.org/2001/XMLSchema#int]
-[8e15aeb1-3e57-4ecd-8fcf-13a159def0f5, http://www.w3.org/ns/shacl#path, http://schema.org/reservationId]
-[8e15aeb1-3e57-4ecd-8fcf-13a159def0f5, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#PropertyShape]
-
-Property shape properties:
-[8e15aeb1-3e57-4ecd-8fcf-13a159def0f5, http://www.w3.org/ns/shacl#minCount, "1"^^http://www.w3.org/2001/XMLSchema#int]
-[8e15aeb1-3e57-4ecd-8fcf-13a159def0f5, http://www.w3.org/ns/shacl#path, http://schema.org/reservationId]
-[8e15aeb1-3e57-4ecd-8fcf-13a159def0f5, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://www.w3.org/ns/shacl#PropertyShape]
+=== Testing Nested Properties ===
+Created source node with nested properties:
+  ID: Airport
+  Nested properties:
+    address_street: type=String, min=1, max=1
+    address_city: type=String, min=1, max=1
+Starting PG Schema transformation with 1 nodes
+Transforming node: Airport
+  Labels: [Airport]
+  Properties: {}
+Copying label: Airport
+Copying constraint: address_street
+Copying constraint: address_city
+Created PG Schema with 1 nodes
+Transformed node nested properties:
+    address_street: type=String, min=1, max=1
+    address_city: type=String, min=1, max=1
 ]]></system-out>
   </testcase>
-  <testcase name="testTransformToRDF" classname="com.kgswitch.transforms.RDFSchemaTransformerTest" time="0.002">
+  <testcase name="testEdgeTransformation" classname="com.kgswitch.transforms.StatementGraphTransformerTest" time="0.001">
     <system-out><![CDATA[
-Final RDF Model:
+=== Starting New Test ===
+
+=== Testing Edge Transformation ===
+Created source nodes:
+  Person: Person with labels: [Person]
+  Organization: Organization with labels: [Organization]
+Created edge:
+  ID: WORKS_AT
+  Label: worksAt
+  Properties: {startDate=com.kgswitch.models.constraints.PropertyConstraint@51e0301d}
+Starting PG Schema transformation with 2 nodes
+Transforming node: Person
+  Labels: [Person]
+  Properties: {}
+Copying label: Person
+Transforming node: Organization
+  Labels: [Organization]
+  Properties: {}
+Copying label: Organization
+Created PG Schema with 2 nodes
+Transforming edge: WORKS_AT
+  Copied edge constraint: startDate
+  Added edge: WORKS_AT with 1 property constraints
+Transformed edge:
+  ID: WORKS_AT
+  Label: worksAt
+  Properties: {startDate=com.kgswitch.models.constraints.PropertyConstraint@5f303ecd}
+]]></system-out>
+  </testcase>
+  <testcase name="testBasicNodeTransformation" classname="com.kgswitch.transforms.StatementGraphTransformerTest" time="0.004">
+    <system-out><![CDATA[
+=== Starting New Test ===
+
+=== Testing Basic Node Transformation ===
+Created source node:
+  ID: Person
+  Labels: [Person]
+  Properties: {name=com.kgswitch.models.constraints.PropertyConstraint@25a73de1}
+Starting PG Schema transformation with 1 nodes
+Transforming node: Person
+  Labels: [Person]
+  Properties: {}
+Copying label: Person
+Copying constraint: name
+Created PG Schema with 1 nodes
+Transformed node:
+  ID: Person
+  Labels: [Person]
+  Properties: {name=com.kgswitch.models.constraints.PropertyConstraint@771db12c}
 ]]></system-out>
   </testcase>
 </testsuite>

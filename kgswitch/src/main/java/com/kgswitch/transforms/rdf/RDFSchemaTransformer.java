@@ -107,14 +107,59 @@ public class RDFSchemaTransformer {
             String path = pathStmt.getObject().toString();
             String propertyName = getLocalName(path);
             
-            // Check if this is a relationship
+            // Check if this is a relationship or nested shape
             Statement classStmt = propertyShape.getProperty(
                 rdfModel.createProperty(SHACL_NS + "class")
             );
             
             if (classStmt != null) {
-                // This is a relationship
+                // Create the relationship regardless of nested properties
                 processRelationshipShape(propertyShape, sourceNode, propertyName, classStmt);
+                
+                // Also process nested properties if they exist
+                StmtIterator nestedProps = propertyShape.listProperties(
+                    rdfModel.createProperty(SHACL_NS + "property")
+                );
+                
+                while (nestedProps.hasNext()) {
+                    Resource nestedShape = nestedProps.next().getObject().asResource();
+                    Statement nestedPath = nestedShape.getProperty(
+                        rdfModel.createProperty(SHACL_NS + "path")
+                    );
+                    
+                    if (nestedPath != null) {
+                        String nestedPropertyName = getLocalName(nestedPath.getObject().toString());
+                        String compoundName = propertyName + "_" + nestedPropertyName;
+                        
+                        Statement datatypeStmt = nestedShape.getProperty(
+                            rdfModel.createProperty(SHACL_NS + "datatype")
+                        );
+                        
+                        if (datatypeStmt != null) {
+                            PropertyConstraint constraint = new PropertyConstraint(
+                                compoundName,
+                                datatypeStmt.getObject().toString()
+                            );
+                            
+                            // Add cardinality constraints if present
+                            Statement minCount = nestedShape.getProperty(
+                                rdfModel.createProperty(SHACL_NS + "minCount")
+                            );
+                            Statement maxCount = nestedShape.getProperty(
+                                rdfModel.createProperty(SHACL_NS + "maxCount")
+                            );
+                            
+                            if (minCount != null || maxCount != null) {
+                                int min = minCount != null ? minCount.getInt() : 0;
+                                int max = maxCount != null ? maxCount.getInt() : -1;
+                                constraint.setCardinality(min, max);
+                            }
+                            
+                            sourceNode.addPropertyConstraint(constraint);
+                            System.out.println("Added nested property: " + compoundName);
+                        }
+                    }
+                }
             } else {
                 // This is a regular property
                 processRegularPropertyShape(propertyShape, sourceNode, propertyName);

@@ -28,7 +28,7 @@ public class PGSchemaTransformer {
         // Process edge statements
         for (SchemaNode node : statementGraph.getNodes()) {
             if (node.getLabels().contains("EdgeStatement")) {
-                processEdgeStatement(node, pgSchema);
+                processEdgeStatement(node, pgSchema, statementGraph);
             }
         }
         
@@ -50,6 +50,7 @@ public class PGSchemaTransformer {
         String subject = statement.getProperties().get("subject").toString();
         String predicate = statement.getProperties().get("predicate").toString();
         String datatype = statement.getProperties().get("datatype").toString();
+        datatype = convertDataType(datatype);
         
         SchemaNode node = pgSchema.getNode(subject);
         if (node != null) {
@@ -67,62 +68,66 @@ public class PGSchemaTransformer {
         }
     }
 
-    private void processEdgeStatement(SchemaNode statement, SchemaGraph pgSchema) {
+    private void processEdgeStatement(SchemaNode statement, SchemaGraph pgSchema, SchemaGraph statementGraph) {
         String source = statement.getProperties().get("subject").toString();
         String predicate = statement.getProperties().get("predicate").toString();
         String target = statement.getProperties().get("object").toString();
         
         SchemaNode sourceNode = pgSchema.getNode(source);
         SchemaNode targetNode = pgSchema.getNode(target);
-        
+
         if (sourceNode != null && targetNode != null) {
+            System.out.println("\nDEBUG: Processing edge statement for: " + predicate);
+            System.out.println("Statement Properties: " + statement.getProperties());
+            System.out.println("Statement Property Constraints: " + statement.getPropertyConstraints());
+
             SchemaEdge edge = new SchemaEdge(
                 source + "_" + predicate + "_" + target,
                 sourceNode,
                 targetNode,
                 predicate.toUpperCase()
             );
-            
-            // Transfer property constraints from statement to edge
+
+            // Transfer property constraints from the statement
             statement.getPropertyConstraints().forEach((key, constraint) -> {
-                PropertyConstraint newConstraint = new PropertyConstraint(
-                    key,
-                    mapDataType(constraint.getDataType())
-                );
-                newConstraint.setCardinality(
-                    constraint.getMinCardinality(),
-                    constraint.getMaxCardinality()
-                );
-                edge.addPropertyConstraint(newConstraint);
-            });
-            
-            // Transfer properties from statement to edge
-            statement.getProperties().forEach((key, value) -> {
-                // Skip the standard edge properties
-                if (!key.equals("subject") && !key.equals("predicate") && 
-                    !key.equals("object") && !key.equals("minCount") && 
-                    !key.equals("maxCount")) {
-                    // Create property constraint for each property
-                    PropertyConstraint propConstraint = new PropertyConstraint(
-                        key, 
-                        mapDataType(value.toString())
-                    );
-                    propConstraint.setCardinality(1, 1); // Default cardinality
-                    edge.addPropertyConstraint(propConstraint);
-                }
+                System.out.println("Adding property constraint: " + key + " to edge: " + predicate);
+                edge.addPropertyConstraint(constraint);
             });
 
-            // Add cardinality properties
+            // Add cardinality for the relationship itself
             if (statement.getProperties().containsKey("minCount")) {
                 edge.addProperty("minCount", statement.getProperties().get("minCount").toString());
             }
             if (statement.getProperties().containsKey("maxCount")) {
                 edge.addProperty("maxCount", statement.getProperties().get("maxCount").toString());
             }
+
+            // Look for related property statements that define relationship properties
+            for (SchemaNode node : statementGraph.getNodes()) {
+                if (node.getLabels().contains("PropertyStatement") && 
+                    node.getProperties().containsKey("subject") &&
+                    node.getProperties().get("subject").toString().equals(predicate)) {
+                    
+                    String propertyName = node.getProperties().get("predicate").toString();
+                    String dataType = node.getProperties().get("datatype").toString();
+                    
+                    System.out.println("Found relationship property: " + propertyName + " for edge: " + predicate);
+                    
+                    PropertyConstraint constraint = new PropertyConstraint(propertyName, mapDataType(dataType));
+                    if (node.getProperties().containsKey("minCount")) {
+                        int minCount = Integer.parseInt(node.getProperties().get("minCount").toString());
+                        int maxCount = node.getProperties().containsKey("maxCount") ? 
+                            Integer.parseInt(node.getProperties().get("maxCount").toString()) : -1;
+                        constraint.setCardinality(minCount, maxCount);
+                    }
+                    
+                    edge.addPropertyConstraint(constraint);
+                }
+            }
             
             pgSchema.addEdge(edge);
-            System.out.println("Added edge " + predicate + " with " + 
-                             statement.getPropertyConstraints().size() + " properties");
+            System.out.println("Added edge: " + edge.getLabel() + " with " + 
+                             edge.getPropertyConstraints().size() + " property constraints");
         }
     }
 
@@ -190,5 +195,30 @@ public class PGSchemaTransformer {
             default:
                 return "String";
         }
+    }
+
+    private String convertDataType(String fullDataType) {
+        if (fullDataType.contains("#")) {
+            String type = fullDataType.substring(fullDataType.indexOf("#") + 1);
+            switch (type.toLowerCase()) {
+                case "string":
+                    return "String";
+                case "integer":
+                case "int":
+                    return "Integer";
+                case "float":
+                case "double":
+                    return "Float";
+                case "boolean":
+                    return "Boolean";
+                case "date":
+                    return "Date";
+                case "datetime":
+                    return "DateTime";
+                default:
+                    return "String";
+            }
+        }
+        return "String";
     }
 }

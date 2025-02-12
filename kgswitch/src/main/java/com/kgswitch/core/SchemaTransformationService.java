@@ -170,7 +170,13 @@ public class SchemaTransformationService {
     private JsonNode createRelationshipsJson(Collection<SchemaEdge> edges) {
         ArrayNode relationships = objectMapper.createArrayNode();
         
+        System.out.println("\nDEBUG: SchemaTransformationService - Creating relationships JSON");
+        System.out.println("Total edges to process: " + edges.size());
+        
         for (SchemaEdge edge : edges) {
+            System.out.println("\nProcessing edge: " + edge.getLabel());
+            System.out.println("Property constraints: " + edge.getPropertyConstraints().size());
+            
             ObjectNode relationship = objectMapper.createObjectNode();
             relationship.put("type", edge.getType().toLowerCase());
             relationship.put("source", edge.getSource().getLabels().iterator().next());
@@ -181,6 +187,7 @@ public class SchemaTransformationService {
             
             // Add property constraints as properties
             edge.getPropertyConstraints().forEach((key, constraint) -> {
+                System.out.println("Adding property: " + key);
                 ObjectNode propertyDetails = objectMapper.createObjectNode();
                 propertyDetails.put("type", constraint.getDataType());
                 

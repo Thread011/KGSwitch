@@ -37,6 +37,7 @@ public class StatementGraphTransformer {
 
         // Transform edges
         for (SchemaEdge edge : statementGraph.getEdges()) {
+            System.out.println("Transforming edge: " + edge.getId());
             SchemaNode sourceNode = nodeMap.get(edge.getSource().getId());
             SchemaNode targetNode = nodeMap.get(edge.getTarget().getId());
             
@@ -48,9 +49,27 @@ public class StatementGraphTransformer {
                     edge.getLabel()
                 );
                 
-                // Copy edge properties
+                // Copy edge properties and constraints
                 edge.getProperties().forEach(pgEdge::addProperty);
+                
+                // Copy property constraints
+                edge.getPropertyConstraints().forEach((key, constraint) -> {
+                    PropertyConstraint newConstraint = new PropertyConstraint(
+                        constraint.getName(),
+                        constraint.getDataType()
+                    );
+                    newConstraint.setCardinality(
+                        constraint.getMinCardinality(),
+                        constraint.getMaxCardinality()
+                    );
+                    pgEdge.addPropertyConstraint(newConstraint);
+                    System.out.println("  Copied edge constraint: " + key);
+                });
+                
                 pgSchema.addEdge(pgEdge);
+                System.out.println("  Added edge: " + pgEdge.getId() + 
+                                 " with " + pgEdge.getPropertyConstraints().size() + 
+                                 " property constraints");
             }
         }
         
@@ -69,12 +88,18 @@ public class StatementGraphTransformer {
         // Transform property constraints
         for (Map.Entry<String, PropertyConstraint> entry : 
              originalNode.getPropertyConstraints().entrySet()) {
-            PropertyConstraint constraint = entry.getValue();
+            PropertyConstraint originalConstraint = entry.getValue();
             System.out.println("Copying constraint: " + entry.getKey());
-            pgNode.addPropertyConstraint(new PropertyConstraint(
-                constraint.getName(),
-                constraint.getDataType()
-            ));
+            
+            PropertyConstraint newConstraint = new PropertyConstraint(
+                originalConstraint.getName(),
+                originalConstraint.getDataType()
+            );
+            newConstraint.setCardinality(
+                originalConstraint.getMinCardinality(),
+                originalConstraint.getMaxCardinality()
+            );
+            pgNode.addPropertyConstraint(newConstraint);
         }
         
         // Copy properties
