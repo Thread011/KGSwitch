@@ -2,4 +2,5 @@ com\kgswitch\transforms\PGStatementToSchemaTransformerTest.class
 com\kgswitch\transforms\RDFStatementTransformerTest.class
 com\kgswitch\transforms\SchemaTransformationServiceTest.class
 com\kgswitch\transforms\PGSchemaTransformerTest.class
+com\kgswitch\transforms\StatementGraphTransformerTest.class
 com\kgswitch\transforms\RDFSchemaTransformerTest.class
