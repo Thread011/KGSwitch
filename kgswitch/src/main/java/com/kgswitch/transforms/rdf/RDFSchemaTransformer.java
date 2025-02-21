@@ -11,6 +11,8 @@ import com.kgswitch.models.graph.SchemaNode;
 import com.kgswitch.models.graph.SchemaEdge;
 
 import java.util.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class RDFSchemaTransformer {
     private Model rdfModel;
@@ -20,8 +22,12 @@ public class RDFSchemaTransformer {
 
     public SchemaGraph transformToStatementGraph(String ttlFile) {
         try {
+            // Normalize file path by converting to URI format
+            Path normalizedPath = Paths.get(ttlFile).toAbsolutePath().normalize();
+            String fileUri = normalizedPath.toUri().toString();
+            
             rdfModel = ModelFactory.createDefaultModel();
-            rdfModel.read(ttlFile, "TURTLE");
+            rdfModel.read(fileUri, "TURTLE");
             statementGraph = new SchemaGraph("rdf");
             nodeStatements = new HashMap<>();
 
