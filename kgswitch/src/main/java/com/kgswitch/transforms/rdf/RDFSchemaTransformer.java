@@ -234,6 +234,55 @@ public class RDFSchemaTransformer {
                 }
             }
             
+            // Check if there are any properties defined for this relationship in the RDF model
+            // This handles the case where relationship properties are defined at the same level, not nested
+            String relationshipIRI = propertyShape.getProperty(
+                rdfModel.createProperty(SHACL_NS + "path")
+            ).getObject().toString();
+            
+            // Find all property statements where the subject is the relationship IRI
+            StmtIterator relProps = rdfModel.listStatements(
+                null,
+                rdfModel.createProperty(SHACL_NS + "path"),
+                rdfModel.createResource(relationshipIRI)
+            );
+            
+            while (relProps.hasNext()) {
+                Resource relPropShape = relProps.next().getSubject();
+                
+                // Check if this is a property statement (has datatype)
+                Statement datatypeStmt = relPropShape.getProperty(
+                    rdfModel.createProperty(SHACL_NS + "datatype")
+                );
+                
+                if (datatypeStmt != null) {
+                    // This is a property for the relationship
+                    String relPropName = getLocalName(relationshipIRI) + "_property";
+                    
+                    PropertyConstraint constraint = new PropertyConstraint(
+                        relPropName,
+                        datatypeStmt.getObject().toString()
+                    );
+                    
+                    // Add cardinality if present
+                    Statement minCount = relPropShape.getProperty(
+                        rdfModel.createProperty(SHACL_NS + "minCount")
+                    );
+                    Statement maxCount = relPropShape.getProperty(
+                        rdfModel.createProperty(SHACL_NS + "maxCount")
+                    );
+                    
+                    if (minCount != null || maxCount != null) {
+                        int min = minCount != null ? minCount.getInt() : 0;
+                        int max = maxCount != null ? maxCount.getInt() : -1;
+                        constraint.setCardinality(min, max);
+                    }
+                    
+                    edge.addPropertyConstraint(constraint);
+                    System.out.println("Added relationship property constraint: " + relPropName);
+                }
+            }
+            
             // Add relationship cardinality
             Statement minCount = propertyShape.getProperty(
                 rdfModel.createProperty(SHACL_NS + "minCount")

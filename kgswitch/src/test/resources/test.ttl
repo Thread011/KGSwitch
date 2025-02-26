@@ -1,0 +1,17 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix biolink: <https://w3id.org/biolink/vocab/> .
+
+biolink:GeneShape a sh:NodeShape ;
+    sh:targetClass biolink:Gene .
+
+biolink:DiseaseShape a sh:NodeShape ;
+    sh:targetClass biolink:Disease .
+
+biolink:GeneHasVariantThatContributesToDiseaseAssociationShape a sh:PropertyShape ;
+    sh:path biolink:GeneHasVariantThatContributesToDiseaseAssociation ;
+    sh:domain biolink:Gene ;
+    sh:range biolink:Disease ;
+    sh:description "A relationship indicating that a gene has a variant that contributes to a disease association." .
