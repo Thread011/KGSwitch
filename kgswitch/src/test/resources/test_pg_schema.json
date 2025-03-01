@@ -1,0 +1,10 @@
+{
+  "nodes" : [ {
+    "label" : "http://schema.org/Gene",
+    "properties" : { }
+  }, {
+    "label" : "http://schema.org/Disease",
+    "properties" : { }
+  } ],
+  "relationships" : [ ]
+}

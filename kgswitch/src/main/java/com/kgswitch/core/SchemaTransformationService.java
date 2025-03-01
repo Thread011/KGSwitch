@@ -37,7 +37,7 @@ public class SchemaTransformationService {
             
             // Step 1: RDF to RDF Statement Graph
             SchemaGraph rdfStatementGraph = rdfTransformer.transformToStatementGraph(
-                schemaFile.toString());
+                schemaFile.toAbsolutePath().normalize().toString());
             validateGraph(rdfStatementGraph, "RDF Statement Graph");
             
             // Step 2: RDF Statement Graph to PG Statement Graph
