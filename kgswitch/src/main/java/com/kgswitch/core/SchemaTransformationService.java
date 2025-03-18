@@ -7,7 +7,6 @@ import com.kgswitch.transforms.rdf.RDFSchemaTransformer;
 import com.kgswitch.transforms.pg.PGSchemaToStatementTransformer;
 import com.kgswitch.transforms.pg.PGStatementToSchemaTransformer;
 import com.kgswitch.transforms.rdf.StatementToRDFTransformer;
-import com.kgswitch.util.CypherQueryGenerator;
 import com.kgswitch.util.JsonSchemaGenerator;
 import org.apache.jena.rdf.model.Model;
 import com.fasterxml.jackson.databind.ObjectMapper;
