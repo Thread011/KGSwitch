@@ -13,7 +13,6 @@ public class RDFStatementTransformer {
     private Model rdfModel;
     private Map<String, Resource> nodeShapes;
     
-    // Add namespace constants
     private static final String SHACL_NS = "http://www.w3.org/ns/shacl#";
     private static final String SCHEMA_NS = "http://schema.org/";
     private static final String XSD_NS = "http://www.w3.org/2001/XMLSchema#";

@@ -14,6 +14,11 @@ KGSwitch is a Java-based tool for transforming and validating schemas between RD
 - [Transformation Process Architecture](#transformation-process-architecture)
   - [Transformation Steps](#transformation-steps)
   - [Class Responsibilities in Transformation](#class-responsibilities-in-transformation)
+- [Visualization](#visualization)
+  - [Schema Visualization](#schema-visualization)
+  - [Neo4j Visualization](#neo4j-visualization)
+  - [Visualization Process](#visualization-process)
+  - [Output Formats](#output-formats)
 - [Test Use Cases](#test-use-cases)
   - [Unit Tests](#unit-tests)
   - [Integration Tests](#integration-tests)
@@ -24,6 +29,7 @@ KGSwitch is a Java-based tool for transforming and validating schemas between RD
 - [Building and Running](#building-and-running)
   - [Building the Project](#building-the-project)
   - [Running Transformations](#running-transformations)
+  - [Visualizing Schemas](#visualizing-schemas)
   - [Running Tests](#running-tests)
   - [Running Benchmarks](#running-benchmarks)
 - [Dependencies](#dependencies)
@@ -42,10 +48,11 @@ kgswitch/
 │   │       ├── models/
 │   │       │   ├── constraints/
 │   │       │   │   └── PropertyConstraint.java
-│   │       │   └── graph/
+│   │       │   └── schema/
 │   │       │       ├── SchemaEdge.java
 │   │       │       ├── SchemaGraph.java
-│   │       │       └── SchemaNode.java
+│   │       │       ├── SchemaNode.java
+│   │       │       └── SchemaRelationship.java
 │   │       ├── transforms/
 │   │       │   ├── pg/
 │   │       │   │   ├── PGSchemaToStatementTransformer.java
@@ -59,7 +66,9 @@ kgswitch/
 │   │       │       └── StatementToRDFTransformer.java
 │   │       ├── util/
 │   │       │   ├── CypherQueryGenerator.java
+│   │       │   ├── GraphVisualizer.java
 │   │       │   ├── JsonSchemaGenerator.java
+│   │       │   ├── Neo4jConnector.java
 │   │       │   └── TripleCreator.java
 │   │       ├── benchmark/
 │   │       │   └── KGSwitchBenchmark.java
@@ -76,7 +85,8 @@ kgswitch/
 │           ├── datasets/
 │           │   ├── biolink_model.shacl.ttl
 │           │   ├── Dbpedia-SHACL-Shape.ttl
-│           │   └── flight-schema.ttl
+│           │   ├── flight-schema.ttl
+│           │   └── academic-schema.ttl
 │           ├── flight-instance.ttl
 │           ├── test.ttl
 │           ├── test_pg_schema.json
@@ -97,6 +107,7 @@ KGSwitch follows a modular architecture designed to handle the complex process o
   - Manages RDF → Statement Graph → Property Graph conversions
   - Handles validation at each transformation step
   - Generates output formats (JSON, Cypher)
+  - Provides schema visualization capabilities
 
 - **SchemaWatcher**: Monitors schema files for changes and triggers transformations
   - Watches directories for new/modified schema files
@@ -155,6 +166,23 @@ KGSwitch follows a modular architecture designed to handle the complex process o
   - Structures relationships with source/target information
   - Preserves property constraints in JSON format
 
+- **GraphVisualizer**: Generates visual representations of schema graphs
+  - Creates DOT format output for visualization
+  - Renders nodes with properties and data types
+  - Displays relationships and their constraints
+  - Supports different output formats (DOT, PNG, SVG)
+
+- **CypherQueryGenerator**: Generates Cypher queries for Neo4j import
+  - Creates schema constraints and indexes
+  - Generates node creation statements
+  - Builds relationship creation statements
+  - Preserves property constraints
+
+- **Neo4jConnector**: Manages connections to Neo4j database
+  - Establishes database connections
+  - Executes Cypher queries
+  - Handles transactions
+  - Provides error handling
 
 ## Transformation Process Architecture
 
@@ -235,6 +263,108 @@ Each class in the transformation process has specific responsibilities:
   - Processes statement graph to create RDF/SHACL
   - Handles type statements, property statements, and edge statements
   - Creates complete RDF model with all constraints
+
+## Visualization
+
+KGSwitch includes robust visualization capabilities to help users understand complex schema structures. The visualization component transforms schema graphs into visual representations that clearly display nodes, relationships, and their properties.
+
+### Schema Visualization
+
+The `GraphVisualizer` class provides the core visualization functionality:
+
+- **Schema Graph Visualization**: Renders complete schema graphs with all nodes and relationships
+  - Displays node labels and properties in an easy-to-read tabular format
+  - Shows relationships between nodes with their property constraints
+  - Uses HTML-based labels to display detailed property information with data types
+  - Supports large-scale schema graphs with many entities
+
+- **Property Display**: Visualizes property constraints in a structured format
+  - Shows property names with their data types
+  - Indicates required properties (based on minCount constraints)
+  - Displays property cardinality information
+  - Presents nested properties in a hierarchical manner
+
+- **Relationship Visualization**: Clearly depicts relationships between nodes
+  - Shows relationship type and direction
+  - Displays relationship properties
+  - Indicates cardinality constraints on relationships
+  - Maintains visual clarity even with complex interconnections
+
+### Neo4j Visualization
+
+KGSwitch provides direct integration with Neo4j for interactive visualization and exploration of schema graphs:
+
+- **Interactive Schema Exploration**: Visualizes schema graphs directly in Neo4j's browser interface
+  - Enables interactive exploration of complex schemas
+  - Allows zooming, filtering, and focusing on specific parts of the schema
+  - Supports schema discovery through intuitive navigation of relationships
+  - Provides a dynamic view of the knowledge graph structure
+
+- **Neo4j Integration**: The `Neo4jConnector` class handles all database operations:
+  - Establishes secure connections to Neo4j instances
+  - Manages authentication and sessions
+  - Executes Cypher queries generated from the schema
+  - Provides error handling and connection management
+  - Supports both local and remote Neo4j instances
+
+- **Schema Import**: Automatically imports the schema graph into Neo4j:
+  - Creates node labels with properties and constraints
+  - Establishes relationship types with their properties
+  - Preserves all cardinality and data type constraints
+  - Optimizes the graph with appropriate indexes
+
+- **Customizable Visualization**: The Neo4j visualization offers configurable options:
+  - Custom node colors based on node types
+  - Control over relationship display
+  - Node and relationship property filtering
+  - Layout adjustments for optimal viewing
+
+### Visualization Process
+
+The visualization process consists of several key steps:
+
+1. **Schema Graph Processing**:
+   - Processes `SchemaGraph` objects with nodes and relationships
+   - Extracts labels, properties, and constraints for each node
+   - Maps relationships between nodes with their properties
+
+2. **Graph Construction**:
+   - Creates a mutable graph representation using the GraphViz library
+   - Constructs nodes as HTML tables showing properties and data types
+   - Builds edges with relationship types and property information
+   - Optimizes layout for readability
+
+3. **Output Generation**:
+   - Generates DOT format output for maximum compatibility
+   - Supports conversion to various image formats via GraphViz tools
+   - Provides clear user instructions for viewing and converting outputs
+
+### Output Formats
+
+KGSwitch supports the following visualization output formats:
+
+- **DOT**: Native GraphViz format that can be viewed with GraphViz tools
+  - Provides complete schema representation
+  - Can be converted to other formats using GraphViz command-line tools
+  - Recommended default format for maximum compatibility
+
+- **PNG/SVG/PDF**: Image formats for documentation and presentation
+  - Can be generated from DOT files using the GraphViz dot command
+  - `dot -Tpng schema.dot -o schema.png`
+  - `dot -Tsvg schema.dot -o schema.svg`
+  - `dot -Tpdf schema.dot -o schema.pdf`
+
+- **Neo4j Browser**: Interactive visualization within Neo4j
+  - Displays the schema as an interactive, navigable graph
+  - Allows querying and exploration of specific subgraphs
+  - Supports custom styling and filtering
+  - Enables sharing of visualization views with team members
+
+The visualization output shows:
+- Nodes with labeled headers
+- Property names and their data types in table format
+- Relationships with their types and properties
+- A clean, structured representation of the entire knowledge graph schema
 
 ## Test Use Cases
 
@@ -468,6 +598,66 @@ The transformation process will:
 
 If the transformation is successful, you'll see a confirmation message indicating where to find the output files.
 
+### Visualizing Schemas
+
+KGSwitch provides two main approaches for schema visualization:
+
+#### Static Image Visualization
+
+Use the following command to generate a DOT file visualization:
+
+```bash
+# Generate a visual representation of a schema
+mvn clean compile exec:java -Dexec.args="src/test/resources/datasets/schema.ttl --image --output schema.dot"
+```
+
+This will:
+1. Read the input SHACL file
+2. Transform it to a schema graph
+3. Generate a DOT file visualization
+
+To convert the DOT file to an image format, use GraphViz:
+
+```bash
+# Convert DOT file to PNG
+dot -Tpng schema.dot -o schema.png
+
+# Convert DOT file to SVG
+dot -Tsvg schema.dot -o schema.svg
+```
+
+#### Interactive Neo4j Visualization
+
+For a more interactive experience, you can visualize the schema directly in Neo4j:
+
+```bash
+# Visualize schema in Neo4j (using default connection settings)
+mvn clean compile exec:java -Dexec.args="src/test/resources/datasets/schema.ttl --neo4j"
+
+# Visualize schema in Neo4j with custom connection settings
+mvn clean compile exec:java -Dexec.args="src/test/resources/datasets/schema.ttl --neo4j --uri bolt://localhost:7687 --user neo4j --password your_password"
+```
+
+This will:
+1. Read the input SHACL file
+2. Transform it to a schema graph
+3. Connect to the specified Neo4j instance
+4. Import the schema using Cypher queries
+5. Provide a link to view the visualization in Neo4j Browser
+
+To view the visualization:
+1. Open Neo4j Browser (typically at http://localhost:7474)
+2. Login with your credentials
+3. Run the Cypher query: `MATCH (n) RETURN n`
+4. Explore the schema interactively
+
+Both visualization approaches show:
+- Nodes with their labels and properties (including data types)
+- Relationships between nodes with their constraints
+- A structured representation of the entire schema
+
+The Neo4j visualization additionally allows interactive exploration, filtering, and custom views of the schema graph.
+
 ### Running Tests
 
 ```bash
@@ -497,6 +687,7 @@ mvn clean compile exec:java -Dexec.mainClass="com.kgswitch.benchmark.KGSwitchBen
 - **TopBraid SHACL** (1.4.2): SHACL validation
 - **JGraphT** (1.5.2): Graph processing
 - **Jackson** (2.15.2): JSON processing
+- **GraphViz-Java** (0.18.1): Graph visualization
 - **JUnit Jupiter** (5.10.1): Testing
 - **SLF4J** (2.0.9): Logging API
 - **Logback** (1.4.14): Logging Implementation

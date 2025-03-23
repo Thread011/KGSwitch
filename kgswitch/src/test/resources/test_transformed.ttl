@@ -1,8 +1,0 @@
-@prefix schema: <http://schema.org/> .
-@prefix sh:     <http://www.w3.org/ns/shacl#> .
-
-<Gene>  a               sh:NodeShape;
-        sh:targetClass  schema:Gene .
-
-<Disease>  a            sh:NodeShape;
-        sh:targetClass  schema:Disease .

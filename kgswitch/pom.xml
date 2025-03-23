@@ -94,6 +94,39 @@
             <version>${jgrapht.version}</version>
         </dependency>
 
+        <!-- GraphViz Java integration for generating visualizations -->
+        <dependency>
+            <groupId>guru.nidi</groupId>
+            <artifactId>graphviz-java</artifactId>
+            <version>0.18.1</version>
+        </dependency>
+        
+        <!-- Additional GraphViz dependencies -->
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-all</artifactId>
+            <version>1.14</version>
+        </dependency>
+        
+        <!-- Add Xerces XML parser dependencies -->
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.12.2</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+            <version>1.4.01</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis-ext</artifactId>
+            <version>1.3.04</version>
+        </dependency>
+        
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -248,7 +281,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <version>3.1.0</version>
             <configuration>
-                <mainClass>com.kgswitch.benchmark.KGSwitchBenchmark</mainClass>
+                <mainClass>com.kgswitch.Main</mainClass>
             </configuration>
         </plugin>
       </plugins>
