@@ -18,17 +18,17 @@ public class PGSchemaToStatementTransformer {
     }
     
     public SchemaGraph transformToStatementGraph() {
-        // First create type statements for all nodes
+        // Ccreate type statements for all nodes
         for (SchemaNode node : pgSchema.getNodes()) {
             createTypeStatements(node);
         }
         
-        // Then create property statements
+        // Create property statements
         for (SchemaNode node : pgSchema.getNodes()) {
             createPropertyStatements(node);
         }
         
-        // Finally create relationship statements
+        // Create relationship statements
         for (SchemaEdge edge : pgSchema.getEdges()) {
             processEdge(edge, statementGraph);
         }
@@ -85,7 +85,7 @@ public class PGSchemaToStatementTransformer {
             statement.addProperty("maxCount", edge.getProperty("maxCount").toString());
         }
         
-        // Transfer property constraints
+        // property constraints transfer
         edge.getPropertyConstraints().forEach((key, constraint) -> {
             statement.addPropertyConstraint(constraint);
         });

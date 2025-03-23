@@ -7,13 +7,15 @@ import com.kgswitch.transforms.rdf.RDFSchemaTransformer;
 import com.kgswitch.transforms.pg.PGSchemaToStatementTransformer;
 import com.kgswitch.transforms.pg.PGStatementToSchemaTransformer;
 import com.kgswitch.transforms.rdf.StatementToRDFTransformer;
-import com.kgswitch.util.CypherQueryGenerator;
 import com.kgswitch.util.JsonSchemaGenerator;
+import com.kgswitch.util.CypherQueryGenerator;
+import com.kgswitch.util.Neo4jConnector;
 import org.apache.jena.rdf.model.Model;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.kgswitch.util.GraphVisualizer;
 
 import java.io.FileWriter;
 import java.nio.file.Path;
@@ -31,7 +33,29 @@ public class SchemaTransformationService {
         this.objectMapper = new ObjectMapper();
     }
     
+    /**
+     * Transform an RDF/SHACL schema to a Property Graph schema
+     * 
+     * @param schemaFile Path to the schema file
+     * @throws SchemaTransformationException If transformation fails
+     */
     public void transformSchema(Path schemaFile) throws SchemaTransformationException {
+        transformSchema(schemaFile, false, null, null, null);
+    }
+    
+    /**
+     * Transform an RDF/SHACL schema to a Property Graph schema with option to visualize in Neo4j
+     * 
+     * @param schemaFile Path to the schema file
+     * @param visualizeInNeo4j Whether to visualize the schema in Neo4j
+     * @param neo4jUri Neo4j connection URI (null for default)
+     * @param neo4jUser Neo4j username (null for default)
+     * @param neo4jPassword Neo4j password (null for default)
+     * @throws SchemaTransformationException If transformation fails
+     */
+    public void transformSchema(Path schemaFile, boolean visualizeInNeo4j, 
+                                String neo4jUri, String neo4jUser, String neo4jPassword) 
+                                throws SchemaTransformationException {
         try {
             System.out.println("Starting transformation for schema: " + schemaFile);
             
@@ -59,14 +83,68 @@ public class SchemaTransformationService {
             saveRDFModel(schemaFile, transformedRDF);
             
             // Save PG Schema statements
-            savePGSchema(schemaFile, pgSchema);
+            String jsonSchemaFile = savePGSchema(schemaFile, pgSchema);
             
-            System.out.println("Transformation completed successfully. Files should be created.");
+            // Generate Cypher for Neo4j
+            String cypherFile = generateCypherQueries(schemaFile, jsonSchemaFile);
+            
+            // Visualize in Neo4j if requested
+            if (visualizeInNeo4j) {
+                visualizeSchemaInNeo4j(jsonSchemaFile, neo4jUri, neo4jUser, neo4jPassword);
+            }
+            
+            System.out.println("Transformation completed successfully. Files created:");
+            System.out.println("- RDF: " + schemaFile.toString().replace(".ttl", "_transformed.ttl"));
+            System.out.println("- PG Schema: " + jsonSchemaFile);
+            System.out.println("- Cypher: " + cypherFile);
             
         } catch (Exception e) {
             System.err.println("Transformation failed: " + e.getMessage());
             throw new SchemaTransformationException(
                 "Failed to transform schema: " + schemaFile, schemaFile, e);
+        }
+    }
+    
+    /**
+     * Generate Cypher queries for Neo4j visualization
+     * 
+     * @param schemaFile Original schema file path
+     * @param jsonSchemaFile JSON schema file path
+     * @return Path to the generated Cypher file
+     * @throws Exception If generation fails
+     */
+    private String generateCypherQueries(Path schemaFile, String jsonSchemaFile) throws Exception {
+        // Generate Cypher queries for Neo4j
+        CypherQueryGenerator cypherGenerator = new CypherQueryGenerator();
+        String cypherQueries = cypherGenerator.generateCypherFromFile(jsonSchemaFile);
+        
+        // Save Cypher to file
+        String cypherFile = schemaFile.toString().replace(".ttl", "_neo4j.cypher");
+        cypherGenerator.writeCypherToFile(cypherQueries, cypherFile);
+        
+        return cypherFile;
+    }
+    
+    /**
+     * Visualize the schema in Neo4j
+     * 
+     * @param jsonSchemaFile JSON schema file path
+     * @param neo4jUri Neo4j URI (null for default)
+     * @param neo4jUser Neo4j username (null for default)
+     * @param neo4jPassword Neo4j password (null for default)
+     * @throws Exception If visualization fails
+     */
+    private void visualizeSchemaInNeo4j(String jsonSchemaFile, 
+                                    String neo4jUri, String neo4jUser, String neo4jPassword) 
+                                    throws Exception {
+        // Connect to Neo4j and visualize the schema
+        try (Neo4jConnector connector = (neo4jUri != null && neo4jUser != null && neo4jPassword != null) ? 
+                new Neo4jConnector(neo4jUri, neo4jUser, neo4jPassword) : 
+                new Neo4jConnector()) {
+            
+            String result = connector.visualizeJsonSchema(jsonSchemaFile);
+            System.out.println("Neo4j Visualization Result:");
+            System.out.println(result);
         }
     }
     
@@ -85,7 +163,7 @@ public class SchemaTransformationService {
         }
     }
     
-    private void savePGSchema(Path schemaFile, SchemaGraph pgSchema) throws Exception {
+    private String savePGSchema(Path schemaFile, SchemaGraph pgSchema) throws Exception {
         String outputFile = schemaFile.toString().replace(".ttl", "_pg_schema.json");
         JsonSchemaGenerator jsonGenerator = new JsonSchemaGenerator();
         String jsonSchema = jsonGenerator.generateJson(pgSchema);
@@ -93,6 +171,8 @@ public class SchemaTransformationService {
         try (FileWriter writer = new FileWriter(outputFile)) {
             writer.write(jsonSchema);
         }
+        
+        return outputFile;
     }
 
     private JsonNode createSchemaJson(SchemaGraph graph) {
@@ -218,5 +298,69 @@ public class SchemaTransformationService {
 
     private void writeJsonToFile(JsonNode json, Path outputPath) throws IOException {
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(outputPath.toFile(), json);
+    }
+
+    /**
+     * Transform the schema and generate a visualization image
+     * 
+     * @param schemaFile Path to the schema file
+     * @param outputImageFile Path to the output image file (png and svg formats are fully supported)
+     * @return Path to the generated image file
+     * @throws SchemaTransformationException If transformation or visualization fails
+     */
+    public String transformSchemaWithImage(Path schemaFile, String outputImageFile) throws SchemaTransformationException {
+        try {
+            System.out.println("Starting transformation for schema with image output: " + schemaFile);
+            
+            // Step 1: RDF to RDF Statement Graph
+            SchemaGraph rdfStatementGraph = rdfTransformer.transformToStatementGraph(
+                schemaFile.toAbsolutePath().normalize().toString());
+            validateGraph(rdfStatementGraph, "RDF Statement Graph");
+            
+            // Step 2: RDF Statement Graph to PG Statement Graph
+            PGSchemaToStatementTransformer pgTransformer = 
+                new PGSchemaToStatementTransformer(rdfStatementGraph);
+            SchemaGraph pgStatementGraph = pgTransformer.transformToStatementGraph();
+            validateGraph(pgStatementGraph, "PG Statement Graph");
+            
+            // Step 3: PG Statement Graph to PG Schema
+            PGStatementToSchemaTransformer schemaTransformer = 
+                new PGStatementToSchemaTransformer(pgStatementGraph);
+            SchemaGraph pgSchema = schemaTransformer.transformToPGSchema();
+            validateGraph(pgSchema, "PG Schema");
+            
+            // Generate visualization image
+            return visualizeSchemaAsImage(schemaFile, pgSchema, outputImageFile);
+            
+        } catch (Exception e) {
+            throw new SchemaTransformationException(
+                "Failed to transform schema and generate image: " + schemaFile, schemaFile, e);
+        }
+    }
+
+    /**
+     * Visualize the schema as an image file
+     * 
+     * @param schemaFile Original schema file path
+     * @param pgSchema The property graph schema
+     * @param outputImageFile Path to output image file (png and svg formats are fully supported)
+     * @return Path to the generated image file
+     * @throws Exception If visualization fails
+     */
+    public String visualizeSchemaAsImage(Path schemaFile, SchemaGraph pgSchema, String outputImageFile) throws Exception {
+        try {
+            System.out.println("Generating visualization image for schema: " + schemaFile);
+            
+            // Create the visualizer
+            GraphVisualizer visualizer = new GraphVisualizer();
+            String imageFile = visualizer.generateImageFromSchemaGraph(pgSchema, outputImageFile);
+            
+            System.out.println("Schema visualization image created: " + imageFile);
+            return imageFile;
+        } catch (Exception e) {
+            throw new SchemaTransformationException(
+                "Failed to visualize schema as image: " + e.getMessage(), 
+                schemaFile, e);
+        }
     }
 }

@@ -1,0 +1,599 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <http://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix acad: <http://example.org/academic/> .
+
+acad:StudentShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Student ;
+    sh:property [
+        sh:path acad:studentId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:firstName ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:lastName ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:email ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:pattern "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$" ;
+    ] ;
+    sh:property [
+        sh:path acad:dateOfBirth ;
+        sh:datatype xsd:date ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:enrolledIn ;
+        sh:class acad:Program ;
+        sh:minCount 1 ;
+        sh:property [
+            sh:path acad:enrollmentDate ;
+            sh:datatype xsd:date ;
+            sh:minCount 1 ;
+        ] ;
+        sh:property [
+            sh:path acad:expectedGraduationDate ;
+            sh:datatype xsd:date ;
+        ] ;
+    ] .
+
+acad:ProfessorShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Professor ;
+    sh:property [
+        sh:path acad:employeeId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:firstName ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:lastName ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:email ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:pattern "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$" ;
+    ] ;
+    sh:property [
+        sh:path acad:department ;
+        sh:class acad:Department ;
+        sh:minCount 1 ;
+        sh:property [
+            sh:path acad:joinDate ;
+            sh:datatype xsd:date ;
+            sh:minCount 1 ;
+        ] ;
+        sh:property [
+            sh:path acad:position ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+        ] ;
+    ] ;
+    sh:property [
+        sh:path acad:teaches ;
+        sh:class acad:Course ;
+        sh:minCount 0 ;
+    ] .
+
+acad:CourseShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Course ;
+    sh:property [
+        sh:path acad:courseId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:description ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path acad:credits ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+        sh:minInclusive 1 ;
+        sh:maxInclusive 6 ;
+    ] ;
+    sh:property [
+        sh:path acad:offeredBy ;
+        sh:class acad:Department ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:prerequisite ;
+        sh:class acad:Course ;
+        sh:minCount 0 ;
+    ] .
+
+acad:DepartmentShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Department ;
+    sh:property [
+        sh:path acad:departmentId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:establishedDate ;
+        sh:datatype xsd:date ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:partOf ;
+        sh:class acad:Institution ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:headOfDepartment ;
+        sh:class acad:Professor ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] .
+
+acad:InstitutionShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Institution ;
+    sh:property [
+        sh:path acad:institutionId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:location ;
+        sh:class acad:Address ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:website ;
+        sh:datatype xsd:anyURI ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:accreditation ;
+        sh:datatype xsd:string ;
+        sh:minCount 0 ;
+    ] ;
+    sh:property [
+        sh:path acad:yearFounded ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+    ] .
+
+acad:ProgramShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Program ;
+    sh:property [
+        sh:path acad:programId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:degreeLevel ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:in ( "Bachelor" "Master" "Doctorate" "Certificate" ) ;
+    ] ;
+    sh:property [
+        sh:path acad:duration ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:offeredBy ;
+        sh:class acad:Department ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:hasCoordinator ;
+        sh:class acad:Professor ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:requiresCourse ;
+        sh:class acad:Course ;
+        sh:minCount 1 ;
+    ] .
+
+acad:AssignmentShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Assignment ;
+    sh:property [
+        sh:path acad:assignmentId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:description ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:dueDate ;
+        sh:datatype xsd:dateTime ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:maxScore ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:partOf ;
+        sh:class acad:Course ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:submittedBy ;
+        sh:class acad:Student ;
+        sh:minCount 0 ;
+        sh:property [
+            sh:path acad:submissionDate ;
+            sh:datatype xsd:dateTime ;
+            sh:minCount 1 ;
+        ] ;
+        sh:property [
+            sh:path acad:score ;
+            sh:datatype xsd:decimal ;
+        ] ;
+    ] .
+
+acad:ExamShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Exam ;
+    sh:property [
+        sh:path acad:examId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:examDate ;
+        sh:datatype xsd:dateTime ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:duration ;
+        sh:datatype xsd:integer ; # in minutes
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:partOf ;
+        sh:class acad:Course ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:location ;
+        sh:class acad:Room ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:supervisedBy ;
+        sh:class acad:Professor ;
+        sh:minCount 1 ;
+    ] .
+
+acad:LaboratoryShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Laboratory ;
+    sh:property [
+        sh:path acad:labId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:equipment ;
+        sh:datatype xsd:string ;
+        sh:minCount 0 ;
+    ] ;
+    sh:property [
+        sh:path acad:capacity ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:managedBy ;
+        sh:class acad:Department ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:location ;
+        sh:class acad:Room ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:usedFor ;
+        sh:class acad:Course ;
+        sh:minCount 0 ;
+    ] .
+
+acad:ResearchProjectShape
+    a sh:NodeShape ;
+    sh:targetClass acad:ResearchProject ;
+    sh:property [
+        sh:path acad:projectId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:description ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:startDate ;
+        sh:datatype xsd:date ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:endDate ;
+        sh:datatype xsd:date ;
+    ] ;
+    sh:property [
+        sh:path acad:budget ;
+        sh:datatype xsd:decimal ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:leadBy ;
+        sh:class acad:Professor ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:hasMember ;
+        sh:class acad:Student ;
+        sh:minCount 0 ;
+        sh:property [
+            sh:path acad:role ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+        ] ;
+    ] ;
+    sh:property [
+        sh:path acad:fundedBy ;
+        sh:class acad:FundingBody ;
+        sh:minCount 0 ;
+    ] .
+
+acad:PublicationShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Publication ;
+    sh:property [
+        sh:path acad:publicationId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:abstract ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:publicationDate ;
+        sh:datatype xsd:date ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:journal ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path acad:doi ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path acad:author ;
+        sh:class acad:Professor ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:coAuthor ;
+        sh:class acad:Student ;
+        sh:minCount 0 ;
+    ] ;
+    sh:property [
+        sh:path acad:resultOf ;
+        sh:class acad:ResearchProject ;
+        sh:minCount 0 ;
+    ] .
+
+acad:FundingBodyShape
+    a sh:NodeShape ;
+    sh:targetClass acad:FundingBody ;
+    sh:property [
+        sh:path acad:funderId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:type ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:in ( "Government" "Private" "NGO" "International" ) ;
+    ] ;
+    sh:property [
+        sh:path acad:contactPerson ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:email ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:pattern "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$" ;
+    ] ;
+    sh:property [
+        sh:path acad:website ;
+        sh:datatype xsd:anyURI ;
+    ] ;
+    sh:property [
+        sh:path acad:funds ;
+        sh:class acad:ResearchProject ;
+        sh:minCount 0 ;
+        sh:property [
+            sh:path acad:fundAmount ;
+            sh:datatype xsd:decimal ;
+            sh:minCount 1 ;
+        ] ;
+        sh:property [
+            sh:path acad:grantDate ;
+            sh:datatype xsd:date ;
+            sh:minCount 1 ;
+        ] ;
+    ] .
+
+acad:AddressShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Address ;
+    sh:property [
+        sh:path acad:street ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:city ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:state ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:country ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:postalCode ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:gpsCoordinates ;
+        sh:datatype xsd:string ;
+        sh:pattern "^-?\\d+\\.\\d+,-?\\d+\\.\\d+$" ;
+    ] ;
+    sh:property [
+        sh:path acad:lastVerified ;
+        sh:datatype xsd:date ;
+    ] .
+
+acad:RoomShape
+    a sh:NodeShape ;
+    sh:targetClass acad:Room ;
+    sh:property [
+        sh:path acad:roomId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:building ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:floor ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:capacity ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path acad:roomType ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:in ( "Lecture" "Laboratory" "Office" "Conference" "Study" ) ;
+    ] ;
+    sh:property [
+        sh:path acad:hasEquipment ;
+        sh:datatype xsd:string ;
+        sh:minCount 0 ;
+    ] . 

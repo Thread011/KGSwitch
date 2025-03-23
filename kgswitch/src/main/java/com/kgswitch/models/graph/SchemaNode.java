@@ -11,7 +11,7 @@ public class SchemaNode {
     private String id;
     private Set<String> labels;
     private Map<String, PropertyConstraint> propertyConstraints;
-    private Map<String, Object> properties; // Add this
+    private Map<String, Object> properties;
 
     public SchemaNode(String id) {
         this.id = id;
@@ -38,7 +38,7 @@ public class SchemaNode {
     public Map<String, PropertyConstraint> getPropertyConstraints() { 
         return propertyConstraints; 
     }
-    public Map<String, Object> getProperties() { // Add this getter
+    public Map<String, Object> getProperties() {
         return properties;
     }
 

@@ -21,7 +21,7 @@ class SchemaTransformationServiceTest {
     @BeforeEach
     void setUp() throws IOException {
         // Create test directory
-        watchDir = Paths.get(TEST_RESOURCES + "/watch").toAbsolutePath();
+        watchDir = Paths.get(TEST_RESOURCES + "/test_dataset").toAbsolutePath();
         Files.createDirectories(watchDir);
         
         // Initialize object mapper
@@ -332,19 +332,19 @@ class SchemaTransformationServiceTest {
         assertTrue(foundUnderName, "Should contain UNDERNAME relationship");
     }
 
-    // @AfterEach
-    // void cleanup() throws IOException {
-    //     // Clean up test files
-    //     if (Files.exists(watchDir)) {
-    //         Files.walk(watchDir)
-    //             .sorted(Comparator.reverseOrder())
-    //             .forEach(path -> {
-    //                 try {
-    //                     Files.delete(path);
-    //                 } catch (IOException e) {
-    //                     System.err.println("Error deleting: " + path);
-    //                 }
-    //             });
-    //     }
-    // }
+    @AfterEach
+    void cleanup() throws IOException {
+        // Clean up test files
+        if (Files.exists(watchDir)) {
+            Files.walk(watchDir)
+                .sorted(Comparator.reverseOrder())
+                .forEach(path -> {
+                    try {
+                        Files.delete(path);
+                    } catch (IOException e) {
+                        System.err.println("Error deleting: " + path);
+                    }
+                });
+        }
+    }
 }

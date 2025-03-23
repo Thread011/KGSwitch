@@ -167,7 +167,7 @@ public class RDFSchemaTransformer {
                     }
                 }
             } else {
-                // This is a regular property
+                // regular property
                 processRegularPropertyShape(propertyShape, sourceNode, propertyName);
             }
         }
