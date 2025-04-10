@@ -691,3 +691,8 @@ mvn clean compile exec:java -Dexec.mainClass="com.kgswitch.benchmark.KGSwitchBen
 - **JUnit Jupiter** (5.10.1): Testing
 - **SLF4J** (2.0.9): Logging API
 - **Logback** (1.4.14): Logging Implementation
+
+
+## Contact des étudiants:
+<diogomiguel.op@gmail.com>
+<raphael.raimbaud.remazeilles@gmail.com>
