@@ -107,6 +107,27 @@ public class GraphVisualizer {
             .nodeAttrs().add(Shape.RECTANGLE) // Changed to rectangle for better label display
             .linkAttrs().add("arrowhead", "vee");
         
+        // First collect all edge properties to filter them out from nodes
+        Set<String> edgePropertyNames = new HashSet<>();
+        Map<String, Set<String>> edgeTypeProperties = new HashMap<>();
+        
+        for (SchemaEdge edge : schemaGraph.getEdges()) {
+            String edgeType = edge.getType().toLowerCase();
+            Set<String> propNames = new HashSet<>();
+            
+            for (Map.Entry<String, PropertyConstraint> entry : edge.getPropertyConstraints().entrySet()) {
+                String propName = entry.getKey();
+                // Add the property name to our set of edge properties
+                edgePropertyNames.add(propName);
+                propNames.add(propName);
+                
+                // Also add the composite form (edgeType_propName) that might appear in node properties
+                edgePropertyNames.add(edgeType + "_" + propName);
+            }
+            
+            edgeTypeProperties.put(edgeType, propNames);
+        }
+        
         // Generate nodes
         Map<String, MutableNode> nodeMap = new HashMap<>();
         int colorIndex = 0;
@@ -125,12 +146,35 @@ public class GraphVisualizer {
                 nodeLabel.append("<TR><TD COLSPAN=\"2\" BGCOLOR=\"white\"><B>")
                        .append(label).append("</B></TD></TR>");
                 
-                // Add property constraints as table rows
+                // Add property constraints as table rows, filtering out edge properties
                 for (Map.Entry<String, PropertyConstraint> entry : node.getPropertyConstraints().entrySet()) {
                     String propName = entry.getKey();
-                    String propType = getSimpleTypeFromDataType(entry.getValue().getDataType());
-                    nodeLabel.append("<TR><TD>").append(propName).append("</TD><TD>")
-                             .append(propType).append("</TD></TR>");
+                    
+                    // Skip if property is an exact match to an edge property
+                    if (edgePropertyNames.contains(propName)) {
+                        continue;
+                    }
+                    
+                    // Check if property is in the format edgeType_propertyName
+                    boolean isEdgeProperty = false;
+                    if (propName.contains("_")) {
+                        String prefix = propName.substring(0, propName.indexOf("_"));
+                        String suffix = propName.substring(propName.indexOf("_") + 1);
+                        
+                        // Check if the suffix matches any edge property
+                        if (edgeTypeProperties.containsKey(prefix.toLowerCase())) {
+                            Set<String> propNames = edgeTypeProperties.get(prefix.toLowerCase());
+                            if (propNames.contains(suffix)) {
+                                isEdgeProperty = true;
+                            }
+                        }
+                    }
+                    
+                    if (!isEdgeProperty) {
+                        String propType = getSimpleTypeFromDataType(entry.getValue().getDataType());
+                        nodeLabel.append("<TR><TD>").append(propName).append("</TD><TD>")
+                                 .append(propType).append("</TD></TR>");
+                    }
                 }
                 
                 nodeLabel.append("</TABLE>");
